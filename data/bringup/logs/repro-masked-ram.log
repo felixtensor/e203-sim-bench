@@ -1,0 +1,4 @@
+$BUILD/repro-masked-ram.mlir:24:11: error: failed to legalize operation 'llhd.prb' that was explicitly marked illegal: %14 = "llhd.prb"(%13) : (!llhd.ref<!hw.array<4xi16>>) -> !hw.array<4xi16>
+    %15 = llhd.prb %mem : !hw.array<4xi16>
+          ^
+$BUILD/repro-masked-ram.mlir:24:11: note: see current operation: %14 = "llhd.prb"(%13) : (!llhd.ref<!hw.array<4xi16>>) -> !hw.array<4xi16>

@@ -1,0 +1,4 @@
+* text=auto eol=lf
+# Keep recorded output and patch context byte-for-byte.
+data/** -text -whitespace
+patches/*.patch -whitespace

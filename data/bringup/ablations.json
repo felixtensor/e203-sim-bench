@@ -1,0 +1,34 @@
+[
+  {
+    "case": "baseline",
+    "diagnostic": "only synchronous resets"
+  },
+  {
+    "case": "baseline-sync",
+    "diagnostic": "loop splitting did not eliminate all loops"
+  },
+  {
+    "case": "no-early-flatten",
+    "diagnostic": "loop splitting did not eliminate all loops"
+  },
+  {
+    "case": "original-ram",
+    "diagnostic": "failed to legalize operation 'llhd.prb'"
+  },
+  {
+    "case": "keep-delays",
+    "diagnostic": "failed to legalize operation 'func.func'"
+  },
+  {
+    "case": "keep-clock-gates",
+    "diagnostic": "failed to legalize operation 'llhd.constant_time'"
+  },
+  {
+    "case": "repro-packed-loop",
+    "diagnostic": "is on a combinational loop"
+  },
+  {
+    "case": "repro-masked-ram",
+    "diagnostic": "failed to legalize operation 'llhd.prb'"
+  }
+]

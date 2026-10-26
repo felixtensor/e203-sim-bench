@@ -1,0 +1,65 @@
+[
+  {
+    "case": "external",
+    "boot": "0x20000000",
+    "scratch": "0x20001000",
+    "response_latency": 1,
+    "stall_period": 0,
+    "program_sha256": "fb64172b0213160b7de113831cbcab701c33f670098909e4ef00e835977d375d",
+    "output": "PASS cycles=611 external_reads=135 external_writes=5 signature=3700000080002efba5000000"
+  },
+  {
+    "case": "external-dtcm",
+    "boot": "0x20000000",
+    "scratch": "0x90000000",
+    "response_latency": 1,
+    "stall_period": 0,
+    "program_sha256": "715dd963b5664ada1356ff7dab08e8eef1559134227b75a199c3a7da03e2a99f",
+    "output": "PASS cycles=575 external_reads=130 external_writes=1 signature=3700000080002efba5000000"
+  },
+  {
+    "case": "itcm-dtcm",
+    "boot": "0x80000000",
+    "scratch": "0x90000000",
+    "response_latency": 1,
+    "stall_period": 0,
+    "program_sha256": "715dd963b5664ada1356ff7dab08e8eef1559134227b75a199c3a7da03e2a99f",
+    "output": "PASS cycles=141 external_reads=0 external_writes=1 signature=3700000080002efba5000000"
+  },
+  {
+    "case": "itcm-data",
+    "boot": "0x80000000",
+    "scratch": "0x80001000",
+    "response_latency": 1,
+    "stall_period": 0,
+    "program_sha256": "cf4749f1cd57e77bf8b4a44c2af8854a0872b9125e66deb8f6586577b9b7002e",
+    "output": "PASS cycles=149 external_reads=0 external_writes=1 signature=3700000080002efba5000000"
+  },
+  {
+    "case": "external-stalls",
+    "boot": "0x20000000",
+    "scratch": "0x20001000",
+    "response_latency": 4,
+    "stall_period": 3,
+    "program_sha256": "fb64172b0213160b7de113831cbcab701c33f670098909e4ef00e835977d375d",
+    "output": "PASS cycles=1084 external_reads=135 external_writes=5 signature=3700000080002efba5000000"
+  },
+  {
+    "case": "itcm-stalls",
+    "boot": "0x80000000",
+    "scratch": "0x90000000",
+    "response_latency": 4,
+    "stall_period": 3,
+    "program_sha256": "715dd963b5664ada1356ff7dab08e8eef1559134227b75a199c3a7da03e2a99f",
+    "output": "PASS cycles=142 external_reads=0 external_writes=1 signature=3700000080002efba5000000"
+  },
+  {
+    "case": "negative-self-check",
+    "boot": "0x80000000",
+    "scratch": "0x90000000",
+    "response_latency": 1,
+    "stall_period": 0,
+    "program_sha256": "36dd082bc9df5b2dc816d6b0e2d9230e2149a592572739db390e4a64a540d2ee",
+    "output": "FAIL cpu_self_check cycles=64"
+  }
+]

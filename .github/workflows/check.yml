@@ -1,0 +1,14 @@
+name: Checks
+on: [push, pull_request]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - run: sudo apt-get update && sudo apt-get install -y llvm jq verilator iverilog
+      - run: for script in scripts/*.sh; do bash -n "$script"; done
+      - run: make setup check
+      - run: make smoke SIM=verilator WAVE=1
+      - run: make smoke SIM=iverilog

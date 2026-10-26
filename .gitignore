@@ -1,0 +1,4 @@
+/build/
+/.tools/
+/.tmp/
+.DS_Store

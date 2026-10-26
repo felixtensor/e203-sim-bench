@@ -1,0 +1,601 @@
+{
+  "schema": 1,
+  "experiment": "verilator multithreading",
+  "tool": {
+    "name": "verilator",
+    "version": "Verilator 5.028 2024-08-21 rev conda-forge build 0",
+    "version_number": "5.028",
+    "path": ".tmp/envs/verilator-5.028/bin/verilator",
+    "sha256": "d796cb4b5eaf792ee3bf673ab13c85a138ec53da5167f1cedc6861e2b42c3cb7"
+  },
+  "opt": "O2",
+  "threads": 2,
+  "config": {
+    "threads": 2,
+    "model_threads": 2,
+    "build": {
+      "workdir": "build/e203-bench/verilator/mt-verilator-5.028-O2-t2",
+      "objdir": "build/e203-bench/verilator/mt-verilator-5.028-O2-t2/obj",
+      "exe": "build/e203-bench/verilator/mt-verilator-5.028-O2-t2/obj/sim",
+      "exe_sha256": "d4a838efed99369186a41f1b7853ada2f16ac15b299c4ead19ea6a686413aa8f",
+      "stages": {
+        "elaborate_s": 0.6258797920309007,
+        "accessor_gen_s": 0.0,
+        "build_s": 1.9243779170210473,
+        "total_s": 2.550257709051948
+      },
+      "elaborate": {
+        "command": [
+          "${REPO}/.tmp/envs/verilator-5.028/bin/verilator",
+          "--cc",
+          "--exe",
+          "--threads",
+          "2",
+          "--top-module",
+          "e203_sim",
+          "-Wno-fatal",
+          "--timescale",
+          "1ns/10ps",
+          "-DDISABLE_SV_ASSERTION=1",
+          "-DFPGA_SOURCE=1",
+          "-I${REPO}/build/e203-bench/rtl/e203/core",
+          "-Mdir",
+          "obj",
+          "-o",
+          "sim",
+          "-f",
+          "${REPO}/build/e203-bench/verilator/mt-verilator-5.028-O2-t2/sim-files.f",
+          "${REPO}/bench/e203/verilator/bench_main.cpp"
+        ],
+        "cwd": "build/e203-bench/verilator/mt-verilator-5.028-O2-t2",
+        "seconds": 0.6258797920309007,
+        "error_lines": 0,
+        "warning_summary": {
+          "PINMISSING": 50,
+          "WIDTHEXPAND": 9,
+          "WIDTHTRUNC": 2,
+          "UNOPTFLAT": 1
+        },
+        "mtask_vertices": 27,
+        "log": "build/e203-bench/verilator/mt-verilator-5.028-O2-t2/elaborate.log",
+        "sim_files_list": "build/e203-bench/verilator/mt-verilator-5.028-O2-t2/sim-files.f"
+      },
+      "make": {
+        "command": [
+          "/usr/bin/make",
+          "-C",
+          "${REPO}/build/e203-bench/verilator/mt-verilator-5.028-O2-t2/obj",
+          "-f",
+          "Ve203_sim.mk",
+          "-j8",
+          "CXX=/usr/bin/clang++",
+          "LINK=/usr/bin/clang++",
+          "AR=/usr/bin/ar",
+          "OPT_FAST=-O2",
+          "OPT_SLOW=-O2",
+          "OPT_GLOBAL=-O2",
+          "USER_CPPFLAGS=-I${REPO}/build/e203-bench/verilator/mt-verilator-5.028-O2-t2/obj"
+        ],
+        "cwd": "build/e203-bench/verilator/mt-verilator-5.028-O2-t2",
+        "seconds": 1.9243779170210473,
+        "log": "build/e203-bench/verilator/mt-verilator-5.028-O2-t2/make.log",
+        "exe": "build/e203-bench/verilator/mt-verilator-5.028-O2-t2/obj/sim",
+        "exe_sha256": "d4a838efed99369186a41f1b7853ada2f16ac15b299c4ead19ea6a686413aa8f"
+      },
+      "load_average": {
+        "start": [
+          23.83,
+          13.01,
+          10.32
+        ],
+        "end": [
+          9.75,
+          11.09,
+          9.84
+        ]
+      }
+    },
+    "rtl_derived": {
+      "mode": "pragma",
+      "mechanism": "per-signal /*verilator public_flat_rw_on*/ ... /*verilator public_off*/ around the SRAM array",
+      "staged_source": "build/e203-bench/rtl/e203/general/sirv_sim_ram.v",
+      "staged_sha256": "f25074ac97a3511c393c1b17a8081ef650d1f53ab12b4f4334c222342e31e63b",
+      "derived_source": "build/e203-bench/verilator/mt-verilator-5.028-O2-t2/rtl/sirv_sim_ram.v",
+      "derived_sha256": "2f784ef55a3727283027dae8cc7177b7cd6075219eea2d5fe10018428ffb525b",
+      "other_rtl_files": "unmodified staged copy",
+      "note": "The markers are comments for non-Verilator tools; the RTL logic is unchanged. Needed because Verilator has no other runtime mechanism to write internal memories, and the global --public-flat-rw flag costs ~8.5x simulation time."
+    },
+    "model": {
+      "accessor_header": "build/e203-bench/verilator/mt-verilator-5.028-O2-t2/obj/e203_mem_access.h",
+      "itcm_field": "e203_sim__DOT__cpu__DOT__u_e203_srams__DOT__u_e203_itcm_ram__DOT__u_e203_itcm_gnrl_ram__DOT__u_sirv_sim_ram__DOT__mem_r",
+      "dtcm_field": "e203_sim__DOT__cpu__DOT__u_e203_srams__DOT__u_e203_dtcm_ram__DOT__u_e203_dtcm_gnrl_ram__DOT__u_sirv_sim_ram__DOT__mem_r"
+    },
+    "smoke": {
+      "validated": true,
+      "vcd_compare_enabled": true,
+      "vcd_all_equal": true,
+      "failures": [],
+      "cases": [
+        {
+          "name": "external",
+          "boot": 536870912,
+          "scratch": 536875008,
+          "latency": 1,
+          "stall": 0,
+          "program": "build/e203-bench/programs/smoke-external.bin",
+          "elapsed_s": 0.08614199998555705,
+          "sim_s": 0.010721125,
+          "exit_code": 0,
+          "stdout": "PASS cycles=611 external_reads=135 external_writes=5",
+          "stderr": "HARNESS sim_s=0.010721125 threads=2",
+          "status": "PASS",
+          "cycles": 611,
+          "reads": 135,
+          "writes": 5,
+          "output": "PASS cycles=611 external_reads=135 external_writes=5",
+          "vcd": {
+            "available": true,
+            "equal": true,
+            "reference": "build/e203-arcilator/external.vcd",
+            "bytes": 236426
+          }
+        },
+        {
+          "name": "external-dtcm",
+          "boot": 536870912,
+          "scratch": 2415919104,
+          "latency": 1,
+          "stall": 0,
+          "program": "build/e203-bench/programs/smoke-external-dtcm.bin",
+          "elapsed_s": 0.013586165965534747,
+          "sim_s": 0.009362333,
+          "exit_code": 0,
+          "stdout": "PASS cycles=575 external_reads=130 external_writes=1",
+          "stderr": "HARNESS sim_s=0.009362333 threads=2",
+          "status": "PASS",
+          "cycles": 575,
+          "reads": 130,
+          "writes": 1,
+          "output": "PASS cycles=575 external_reads=130 external_writes=1",
+          "vcd": {
+            "available": true,
+            "equal": true,
+            "reference": "build/e203-arcilator/external-dtcm.vcd",
+            "bytes": 222530
+          }
+        },
+        {
+          "name": "itcm-dtcm",
+          "boot": 2147483648,
+          "scratch": 2415919104,
+          "latency": 1,
+          "stall": 0,
+          "program": "build/e203-bench/programs/smoke-itcm-dtcm.bin",
+          "elapsed_s": 0.005877124960534275,
+          "sim_s": 0.001735209,
+          "exit_code": 0,
+          "stdout": "PASS cycles=141 external_reads=0 external_writes=1",
+          "stderr": "HARNESS sim_s=0.001735209 threads=2",
+          "status": "PASS",
+          "cycles": 141,
+          "reads": 0,
+          "writes": 1,
+          "output": "PASS cycles=141 external_reads=0 external_writes=1",
+          "vcd": {
+            "available": true,
+            "equal": true,
+            "reference": "build/e203-arcilator/itcm-dtcm.vcd",
+            "bytes": 55006
+          }
+        },
+        {
+          "name": "itcm-data",
+          "boot": 2147483648,
+          "scratch": 2147487744,
+          "latency": 1,
+          "stall": 0,
+          "program": "build/e203-bench/programs/smoke-itcm-data.bin",
+          "elapsed_s": 0.006963540974538773,
+          "sim_s": 0.002418042,
+          "exit_code": 0,
+          "stdout": "PASS cycles=149 external_reads=0 external_writes=1",
+          "stderr": "HARNESS sim_s=0.002418042 threads=2",
+          "status": "PASS",
+          "cycles": 149,
+          "reads": 0,
+          "writes": 1,
+          "output": "PASS cycles=149 external_reads=0 external_writes=1",
+          "vcd": {
+            "available": true,
+            "equal": true,
+            "reference": "build/e203-arcilator/itcm-data.vcd",
+            "bytes": 58094
+          }
+        },
+        {
+          "name": "external-stalls",
+          "boot": 536870912,
+          "scratch": 536875008,
+          "latency": 4,
+          "stall": 3,
+          "program": "build/e203-bench/programs/smoke-external-stalls.bin",
+          "elapsed_s": 0.01775100000668317,
+          "sim_s": 0.013528042,
+          "exit_code": 0,
+          "stdout": "PASS cycles=1084 external_reads=135 external_writes=5",
+          "stderr": "HARNESS sim_s=0.013528042 threads=2",
+          "status": "PASS",
+          "cycles": 1084,
+          "reads": 135,
+          "writes": 5,
+          "output": "PASS cycles=1084 external_reads=135 external_writes=5",
+          "vcd": {
+            "available": true,
+            "equal": true,
+            "reference": "build/e203-arcilator/external-stalls.vcd",
+            "bytes": 419174
+          }
+        },
+        {
+          "name": "itcm-stalls",
+          "boot": 2147483648,
+          "scratch": 2415919104,
+          "latency": 4,
+          "stall": 3,
+          "program": "build/e203-bench/programs/smoke-itcm-stalls.bin",
+          "elapsed_s": 0.006256750028114766,
+          "sim_s": 0.002219542,
+          "exit_code": 0,
+          "stdout": "PASS cycles=142 external_reads=0 external_writes=1",
+          "stderr": "HARNESS sim_s=0.002219542 threads=2",
+          "status": "PASS",
+          "cycles": 142,
+          "reads": 0,
+          "writes": 1,
+          "output": "PASS cycles=142 external_reads=0 external_writes=1",
+          "vcd": {
+            "available": true,
+            "equal": true,
+            "reference": "build/e203-arcilator/itcm-stalls.vcd",
+            "bytes": 55392
+          }
+        },
+        {
+          "name": "negative-self-check",
+          "boot": 2147483648,
+          "scratch": 2415919104,
+          "latency": 1,
+          "stall": 0,
+          "program": "build/e203-bench/programs/smoke-negative-self-check.bin",
+          "elapsed_s": 0.004988458007574081,
+          "sim_s": 0.001109333,
+          "exit_code": 1,
+          "stdout": "FAIL cpu_self_check cycles=64",
+          "stderr": "HARNESS sim_s=0.001109333 threads=2",
+          "status": "FAIL",
+          "cycles": 64,
+          "reads": null,
+          "writes": null,
+          "output": "FAIL cpu_self_check cycles=64",
+          "vcd": {
+            "available": true,
+            "equal": true,
+            "reference": "build/e203-arcilator/negative-self-check.vcd",
+            "bytes": 25354
+          }
+        }
+      ]
+    },
+    "bench": {
+      "cases": [
+        {
+          "name": "itcm-dtcm",
+          "program": "build/e203-bench/programs/bench-itcm-dtcm.bin",
+          "program_sha256": "77d16bec96225f7c47815161690f6d694cbefff08a924d3ff9734e2614d6b953",
+          "boot": "0x80000000",
+          "scratch": "0x90000000",
+          "latency": 1,
+          "stall": 0,
+          "cycles": 1239908,
+          "external_reads": 0,
+          "external_writes": 1,
+          "warmup": [
+            {
+              "elapsed_s": 2.539435458020307,
+              "sim_s": 2.535558709,
+              "cycles": 1239908
+            }
+          ],
+          "wall_times_s": [
+            2.6194735419703647,
+            2.5377029170049354,
+            2.982952332997229,
+            2.448394333012402,
+            2.9347017080290243
+          ],
+          "sim_times_s": [
+            2.614557375,
+            2.532080416,
+            2.978601292,
+            2.444054417,
+            2.930075333
+          ],
+          "median_s": 2.6194735419703647,
+          "min_s": 2.448394333012402,
+          "max_s": 2.982952332997229,
+          "cycles_per_s": 473342.44081249344,
+          "median_sim_s": 2.614557375,
+          "cycles_per_s_sim": 474232.46927216504,
+          "output": "PASS cycles=1239908 external_reads=0 external_writes=1"
+        },
+        {
+          "name": "external",
+          "program": "build/e203-bench/programs/bench-external.bin",
+          "program_sha256": "704bf60238d1ea474e3caf732c2b1b92f80b51d71f5ee5d4ea97d6a82e274aaa",
+          "boot": "0x20000000",
+          "scratch": "0x20001000",
+          "latency": 1,
+          "stall": 0,
+          "cycles": 1919990,
+          "external_reads": 240022,
+          "external_writes": 20005,
+          "warmup": [
+            {
+              "elapsed_s": 5.310275790980086,
+              "sim_s": 5.305917916,
+              "cycles": 1919990
+            }
+          ],
+          "wall_times_s": [
+            5.410463165957481,
+            4.904377709026448,
+            5.705904375005048,
+            5.240750209020916,
+            4.182134374976158
+          ],
+          "sim_times_s": [
+            5.406245292,
+            4.899822708,
+            5.701189083,
+            5.2363775,
+            4.177746167
+          ],
+          "median_s": 5.240750209020916,
+          "min_s": 4.182134374976158,
+          "max_s": 5.705904375005048,
+          "cycles_per_s": 366357.854013938,
+          "median_sim_s": 5.2363775,
+          "cycles_per_s_sim": 366663.7861766078,
+          "output": "PASS cycles=1919990 external_reads=240022 external_writes=20005"
+        },
+        {
+          "name": "external-stalls",
+          "program": "build/e203-bench/programs/bench-external-stalls.bin",
+          "program_sha256": "704bf60238d1ea474e3caf732c2b1b92f80b51d71f5ee5d4ea97d6a82e274aaa",
+          "boot": "0x20000000",
+          "scratch": "0x20001000",
+          "latency": 4,
+          "stall": 3,
+          "cycles": 2670016,
+          "external_reads": 240022,
+          "external_writes": 20005,
+          "warmup": [
+            {
+              "elapsed_s": 6.358997167029884,
+              "sim_s": 6.354690208,
+              "cycles": 2670016
+            }
+          ],
+          "wall_times_s": [
+            6.887118874990847,
+            5.691315625037532,
+            6.035156165948138,
+            6.206250249990262,
+            5.817028541001491
+          ],
+          "sim_times_s": [
+            6.882450292,
+            5.686489709,
+            6.031137458,
+            6.202129833,
+            5.812013083
+          ],
+          "median_s": 6.035156165948138,
+          "min_s": 5.691315625037532,
+          "max_s": 6.887118874990847,
+          "cycles_per_s": 442410.424284445,
+          "median_sim_s": 6.031137458,
+          "cycles_per_s_sim": 442705.2141645948,
+          "output": "PASS cycles=2670016 external_reads=240022 external_writes=20005"
+        }
+      ]
+    },
+    "load_average": {
+      "start": [
+        29.86,
+        13.54,
+        10.46
+      ],
+      "bench_start": [
+        9.75,
+        11.09,
+        9.84
+      ]
+    },
+    "comparison": [
+      {
+        "name": "itcm-dtcm",
+        "st_wall_rate": 2571316.066256582,
+        "mt_wall_rate": 473342.44081249344,
+        "wall_speedup": 0.1840856699898442,
+        "st_sim_rate": 2601959.3456369857,
+        "mt_sim_rate": 474232.46927216504,
+        "sim_speedup": 0.18225975362273317
+      },
+      {
+        "name": "external",
+        "st_wall_rate": 2382803.637553048,
+        "mt_wall_rate": 366357.854013938,
+        "wall_speedup": 0.1537507532052279,
+        "st_sim_rate": 2400189.514950763,
+        "mt_sim_rate": 366663.7861766078,
+        "sim_speedup": 0.15276451459047788
+      },
+      {
+        "name": "external-stalls",
+        "st_wall_rate": 2439573.202852412,
+        "mt_wall_rate": 442410.424284445,
+        "wall_speedup": 0.18134746838798166,
+        "st_sim_rate": 2451053.485024569,
+        "mt_sim_rate": 442705.2141645948,
+        "sim_speedup": 0.18061834099885307
+      }
+    ]
+  },
+  "canonical_st": {
+    "exe": "build/e203-bench/verilator/verilator-5.028-O2/obj/sim",
+    "cases": [
+      {
+        "name": "itcm-dtcm",
+        "program": "build/e203-bench/programs/bench-itcm-dtcm.bin",
+        "program_sha256": "77d16bec96225f7c47815161690f6d694cbefff08a924d3ff9734e2614d6b953",
+        "boot": "0x80000000",
+        "scratch": "0x90000000",
+        "latency": 1,
+        "stall": 0,
+        "cycles": 1239908,
+        "external_reads": 0,
+        "external_writes": 1,
+        "warmup": [
+          {
+            "elapsed_s": 0.4818372090230696,
+            "sim_s": 0.477587917,
+            "cycles": 1239908
+          }
+        ],
+        "wall_times_s": [
+          0.48343162500532344,
+          0.48220754199428484,
+          0.4793753330013715,
+          0.4811151669709943,
+          0.49191233300371096
+        ],
+        "sim_times_s": [
+          0.478505416,
+          0.476528583,
+          0.474831708,
+          0.476202083,
+          0.486013708
+        ],
+        "median_s": 0.48220754199428484,
+        "min_s": 0.4793753330013715,
+        "max_s": 0.49191233300371096,
+        "cycles_per_s": 2571316.066256582,
+        "median_sim_s": 0.476528583,
+        "cycles_per_s_sim": 2601959.3456369857,
+        "output": "PASS cycles=1239908 external_reads=0 external_writes=1"
+      },
+      {
+        "name": "external",
+        "program": "build/e203-bench/programs/bench-external.bin",
+        "program_sha256": "704bf60238d1ea474e3caf732c2b1b92f80b51d71f5ee5d4ea97d6a82e274aaa",
+        "boot": "0x20000000",
+        "scratch": "0x20001000",
+        "latency": 1,
+        "stall": 0,
+        "cycles": 1919990,
+        "external_reads": 240022,
+        "external_writes": 20005,
+        "warmup": [
+          {
+            "elapsed_s": 0.8084709579707123,
+            "sim_s": 0.802616667,
+            "cycles": 1919990
+          }
+        ],
+        "wall_times_s": [
+          0.8088192499708384,
+          0.7977910829940811,
+          0.8057692919974215,
+          0.8069619170273654,
+          0.7961867079720832
+        ],
+        "sim_times_s": [
+          0.802840625,
+          0.791709333,
+          0.799932667,
+          0.801353916,
+          0.790967833
+        ],
+        "median_s": 0.8057692919974215,
+        "min_s": 0.7961867079720832,
+        "max_s": 0.8088192499708384,
+        "cycles_per_s": 2382803.637553048,
+        "median_sim_s": 0.799932667,
+        "cycles_per_s_sim": 2400189.514950763,
+        "output": "PASS cycles=1919990 external_reads=240022 external_writes=20005"
+      },
+      {
+        "name": "external-stalls",
+        "program": "build/e203-bench/programs/bench-external-stalls.bin",
+        "program_sha256": "704bf60238d1ea474e3caf732c2b1b92f80b51d71f5ee5d4ea97d6a82e274aaa",
+        "boot": "0x20000000",
+        "scratch": "0x20001000",
+        "latency": 4,
+        "stall": 3,
+        "cycles": 2670016,
+        "external_reads": 240022,
+        "external_writes": 20005,
+        "warmup": [
+          {
+            "elapsed_s": 1.0920647919992916,
+            "sim_s": 1.086431791,
+            "cycles": 2670016
+          }
+        ],
+        "wall_times_s": [
+          1.0920395000139251,
+          1.0919415420503356,
+          1.0944602920208126,
+          1.0955425840220414,
+          1.0982546250452287
+        ],
+        "sim_times_s": [
+          1.08595425,
+          1.087215,
+          1.089334042,
+          1.090133875,
+          1.093728208
+        ],
+        "median_s": 1.0944602920208126,
+        "min_s": 1.0919415420503356,
+        "max_s": 1.0982546250452287,
+        "cycles_per_s": 2439573.202852412,
+        "median_sim_s": 1.089334042,
+        "cycles_per_s_sim": 2451053.485024569,
+        "output": "PASS cycles=2670016 external_reads=240022 external_writes=20005"
+      }
+    ],
+    "load_average": {
+      "start": [
+        29.86,
+        13.54,
+        10.46
+      ],
+      "end": [
+        23.83,
+        13.01,
+        10.32
+      ]
+    }
+  },
+  "host": {
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "cpu_count": 10,
+    "load_average_start": [
+      29.86,
+      13.54,
+      10.46
+    ]
+  }
+}

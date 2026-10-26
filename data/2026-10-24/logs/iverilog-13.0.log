@@ -1,0 +1,41 @@
+Icarus Verilog 13.0  (Icarus Verilog version 13.0 (stable) (v13_0))
+  iverilog : /Users/xubuyun/Projects/circt-tests/.tmp/iverilog-13.0/bin/iverilog
+  vvp      : /Users/xubuyun/Projects/circt-tests/.tmp/iverilog-13.0/bin/vvp
+  tag      : 13.0
+  model    : /Users/xubuyun/Projects/circt-tests/build/e203-bench/iverilog/tb-13.0.vvp
+  cases    : bench
+== build ==
+  compiled 0.220s (-g2012) -> /Users/xubuyun/Projects/circt-tests/build/e203-bench/iverilog/tb-13.0.vvp
+  cold compile command: /Users/xubuyun/Projects/circt-tests/.tmp/iverilog-13.0/bin/iverilog -g2012 -D DISABLE_SV_ASSERTION=1 -DFPGA_SOURCE=1 -I /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core -o /Users/xubuyun/Projects/circt-tests/build/e203-bench/iverilog/tb-13.0.vvp -s tb_e203_bench /Users/xubuyun/Projects/circt-tests/bench/e203/iverilog/tb_e203_bench.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/general/sirv_1cyc_sram_ctrl.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/general/sirv_gnrl_bufs.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/general/sirv_gnrl_dffs.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/general/sirv_gnrl_icbs.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/general/sirv_gnrl_ram.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/general/sirv_gnrl_xchecker.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/general/sirv_sim_ram.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/general/sirv_sram_icb_ctrl.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_biu.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_clk_ctrl.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_clkgate.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_core.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_cpu.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_cpu_top.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_dtcm_ctrl.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_dtcm_ram.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_extend_csr.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_exu.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_exu_alu.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_exu_alu_bjp.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_exu_alu_csrctrl.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_exu_alu_dpath.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_exu_alu_lsuagu.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_exu_alu_muldiv.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_exu_alu_rglr.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_exu_branchslv.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_exu_commit.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_exu_csr.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_exu_decode.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_exu_disp.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_exu_excp.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_exu_longpwbck.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_exu_nice.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_exu_oitf.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_exu_regfile.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_exu_wbck.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_ifu.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_ifu_ifetch.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_ifu_ift2icb.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_ifu_litebpu.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_ifu_minidec.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_irq_sync.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_itcm_ctrl.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_itcm_ram.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_lsu.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_lsu_ctrl.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_reset_ctrl.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core/e203_srams.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/subsys/e203_subsys_nice_core.v /Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203_sim.v
+== smoke validation (reference: arcilator, spec.md) ==
+case                   expected         actual                   cycles   wall_s  ok
+external               PASS cycles=611  PASS cycles=611             611    0.185  yes
+external-dtcm          PASS cycles=575  PASS cycles=575             575    0.181  yes
+itcm-dtcm              PASS cycles=141  PASS cycles=141             141    0.146  yes
+itcm-data              PASS cycles=149  PASS cycles=149             149    0.147  yes
+external-stalls        PASS cycles=1084 PASS cycles=1084           1084    0.223  yes
+itcm-stalls            PASS cycles=142  PASS cycles=142             142    0.146  yes
+negative-self-check    FAIL cycles=64   FAIL cycles=64               64    0.123  yes
+== bench timing (5 repeats, discard_first=True, no VCD) ==
+-- bench-small-external-stalls.bin: boot=0x20000000 scratch=0x20001000 latency=4 stall=3
+   run 1/5: PASS    cycles=267289 wall=  29.492s rate=9,063 cyc/s
+   run 2/5: PASS    cycles=267289 wall=  29.288s rate=9,126 cyc/s
+   run 3/5: PASS    cycles=267289 wall=  29.425s rate=9,084 cyc/s
+   run 4/5: PASS    cycles=267289 wall=  29.289s rate=9,126 cyc/s
+   run 5/5: PASS    cycles=267289 wall=  29.926s rate=8,932 cyc/s
+   cycles=267289 median=29.357s min=29.288s -> 9,105 cycles/s (min-time 9,126)
+-- bench-small-external.bin: boot=0x20000000 scratch=0x20001000 latency=1 stall=0
+   run 1/5: PASS    cycles=192174 wall=  25.432s rate=7,556 cyc/s
+   run 2/5: PASS    cycles=192174 wall=  24.358s rate=7,890 cyc/s
+   run 3/5: PASS    cycles=192174 wall=  24.240s rate=7,928 cyc/s
+   run 4/5: PASS    cycles=192174 wall=  24.338s rate=7,896 cyc/s
+   run 5/5: PASS    cycles=192174 wall=  24.318s rate=7,903 cyc/s
+   cycles=192174 median=24.328s min=24.240s -> 7,899 cycles/s (min-time 7,928)
+-- bench-small-itcm-dtcm.bin: boot=0x80000000 scratch=0x90000000 latency=1 stall=0
+   run 1/5: PASS    cycles=124095 wall=  19.015s rate=6,526 cyc/s
+   run 2/5: PASS    cycles=124095 wall=  19.051s rate=6,514 cyc/s
+   run 3/5: PASS    cycles=124095 wall=  19.163s rate=6,476 cyc/s
+   run 4/5: PASS    cycles=124095 wall=  19.300s rate=6,430 cyc/s
+   run 5/5: PASS    cycles=124095 wall=  19.379s rate=6,404 cyc/s
+   cycles=124095 median=19.232s min=19.051s -> 6,453 cycles/s (min-time 6,514)
+== results written to /Users/xubuyun/Projects/circt-tests/build/e203-bench/results/iverilog-13.0.json (exit 0) ==

@@ -1,0 +1,650 @@
+[
+  {
+    "name": "version-circt-verilog",
+    "argv": [
+      "$CIRCT_BIN/circt-verilog",
+      "--version"
+    ]
+  },
+  {
+    "name": "version-arcilator",
+    "argv": [
+      "$CIRCT_BIN/arcilator",
+      "--version"
+    ]
+  },
+  {
+    "name": "version-llc",
+    "argv": [
+      "$CIRCT_BIN/llc",
+      "--version"
+    ]
+  },
+  {
+    "name": "version-cxx",
+    "argv": [
+      "c++",
+      "--version"
+    ]
+  },
+  {
+    "name": "frontend",
+    "argv": [
+      "$CIRCT_BIN/circt-verilog",
+      "--single-unit",
+      "--timescale=1ns/10ps",
+      "--Xslang=--translate-off-format",
+      "--Xslang=synopsys,translate_off,translate_on",
+      "--Xslang=-Wno-unconnected-output-port",
+      "-D",
+      "DISABLE_SV_ASSERTION=1",
+      "-I",
+      "$BUILD/rtl/e203/core",
+      "--top=e203_sim",
+      "-o",
+      "$BUILD/frontend.mlir",
+      "-D",
+      "FPGA_SOURCE=1",
+      "$BUILD/rtl/e203/general/sirv_1cyc_sram_ctrl.v",
+      "$BUILD/rtl/e203/general/sirv_gnrl_bufs.v",
+      "$BUILD/rtl/e203/general/sirv_gnrl_dffs.v",
+      "$BUILD/rtl/e203/general/sirv_gnrl_icbs.v",
+      "$BUILD/rtl/e203/general/sirv_gnrl_ram.v",
+      "$BUILD/rtl/e203/general/sirv_gnrl_xchecker.v",
+      "$BUILD/rtl/e203/general/sirv_sim_ram.v",
+      "$BUILD/rtl/e203/general/sirv_sram_icb_ctrl.v",
+      "$BUILD/rtl/e203/core/e203_biu.v",
+      "$BUILD/rtl/e203/core/e203_clk_ctrl.v",
+      "$BUILD/rtl/e203/core/e203_clkgate.v",
+      "$BUILD/rtl/e203/core/e203_core.v",
+      "$BUILD/rtl/e203/core/e203_cpu.v",
+      "$BUILD/rtl/e203/core/e203_cpu_top.v",
+      "$BUILD/rtl/e203/core/e203_dtcm_ctrl.v",
+      "$BUILD/rtl/e203/core/e203_dtcm_ram.v",
+      "$BUILD/rtl/e203/core/e203_extend_csr.v",
+      "$BUILD/rtl/e203/core/e203_exu.v",
+      "$BUILD/rtl/e203/core/e203_exu_alu.v",
+      "$BUILD/rtl/e203/core/e203_exu_alu_bjp.v",
+      "$BUILD/rtl/e203/core/e203_exu_alu_csrctrl.v",
+      "$BUILD/rtl/e203/core/e203_exu_alu_dpath.v",
+      "$BUILD/rtl/e203/core/e203_exu_alu_lsuagu.v",
+      "$BUILD/rtl/e203/core/e203_exu_alu_muldiv.v",
+      "$BUILD/rtl/e203/core/e203_exu_alu_rglr.v",
+      "$BUILD/rtl/e203/core/e203_exu_branchslv.v",
+      "$BUILD/rtl/e203/core/e203_exu_commit.v",
+      "$BUILD/rtl/e203/core/e203_exu_csr.v",
+      "$BUILD/rtl/e203/core/e203_exu_decode.v",
+      "$BUILD/rtl/e203/core/e203_exu_disp.v",
+      "$BUILD/rtl/e203/core/e203_exu_excp.v",
+      "$BUILD/rtl/e203/core/e203_exu_longpwbck.v",
+      "$BUILD/rtl/e203/core/e203_exu_nice.v",
+      "$BUILD/rtl/e203/core/e203_exu_oitf.v",
+      "$BUILD/rtl/e203/core/e203_exu_regfile.v",
+      "$BUILD/rtl/e203/core/e203_exu_wbck.v",
+      "$BUILD/rtl/e203/core/e203_ifu.v",
+      "$BUILD/rtl/e203/core/e203_ifu_ifetch.v",
+      "$BUILD/rtl/e203/core/e203_ifu_ift2icb.v",
+      "$BUILD/rtl/e203/core/e203_ifu_litebpu.v",
+      "$BUILD/rtl/e203/core/e203_ifu_minidec.v",
+      "$BUILD/rtl/e203/core/e203_irq_sync.v",
+      "$BUILD/rtl/e203/core/e203_itcm_ctrl.v",
+      "$BUILD/rtl/e203/core/e203_itcm_ram.v",
+      "$BUILD/rtl/e203/core/e203_lsu.v",
+      "$BUILD/rtl/e203/core/e203_lsu_ctrl.v",
+      "$BUILD/rtl/e203/core/e203_reset_ctrl.v",
+      "$BUILD/rtl/e203/core/e203_srams.v",
+      "$BUILD/rtl/e203/subsys/e203_subsys_nice_core.v",
+      "$PACKAGE/e203_sim.v"
+    ]
+  },
+  {
+    "name": "rewrite-ram",
+    "argv": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "$PACKAGE/rewrite_ram.py",
+      "$BUILD/frontend.mlir",
+      "$BUILD/ram.mlir"
+    ]
+  },
+  {
+    "name": "early-flatten",
+    "argv": [
+      "$CIRCT_BIN/circt-opt",
+      "$BUILD/ram.mlir",
+      "--hw-flatten-modules",
+      "--canonicalize",
+      "--cse",
+      "-o",
+      "$BUILD/flat.mlir"
+    ]
+  },
+  {
+    "name": "arcilator",
+    "argv": [
+      "$CIRCT_BIN/arcilator",
+      "$BUILD/flat.mlir",
+      "--async-resets-as-sync",
+      "--no-runtime",
+      "--no-generate-driver",
+      "--observe-memories",
+      "--state-file=$BUILD/model.json",
+      "-o",
+      "$BUILD/model.ll"
+    ]
+  },
+  {
+    "name": "object",
+    "argv": [
+      "$CIRCT_BIN/llc",
+      "-O2",
+      "-filetype=obj",
+      "$BUILD/model.ll",
+      "-o",
+      "$BUILD/model.o",
+      "-mtriple=arm64-apple-macos"
+    ]
+  },
+  {
+    "name": "link",
+    "argv": [
+      "c++",
+      "-std=c++17",
+      "-O2",
+      "-I",
+      "$BUILD",
+      "$PACKAGE/driver.cpp",
+      "$BUILD/model.o",
+      "-o",
+      "$BUILD/sim"
+    ]
+  },
+  {
+    "name": "external",
+    "argv": [
+      "$BUILD/sim",
+      "$BUILD/external.bin",
+      "0x20000000",
+      "0x20001000",
+      "1",
+      "0",
+      "$BUILD/external.vcd",
+      "$BUILD/external.csv"
+    ]
+  },
+  {
+    "name": "external-dtcm",
+    "argv": [
+      "$BUILD/sim",
+      "$BUILD/external-dtcm.bin",
+      "0x20000000",
+      "0x90000000",
+      "1",
+      "0",
+      "$BUILD/external-dtcm.vcd",
+      "$BUILD/external-dtcm.csv"
+    ]
+  },
+  {
+    "name": "itcm-dtcm",
+    "argv": [
+      "$BUILD/sim",
+      "$BUILD/itcm-dtcm.bin",
+      "0x80000000",
+      "0x90000000",
+      "1",
+      "0",
+      "$BUILD/itcm-dtcm.vcd",
+      "$BUILD/itcm-dtcm.csv"
+    ]
+  },
+  {
+    "name": "itcm-data",
+    "argv": [
+      "$BUILD/sim",
+      "$BUILD/itcm-data.bin",
+      "0x80000000",
+      "0x80001000",
+      "1",
+      "0",
+      "$BUILD/itcm-data.vcd",
+      "$BUILD/itcm-data.csv"
+    ]
+  },
+  {
+    "name": "external-stalls",
+    "argv": [
+      "$BUILD/sim",
+      "$BUILD/external-stalls.bin",
+      "0x20000000",
+      "0x20001000",
+      "4",
+      "3",
+      "$BUILD/external-stalls.vcd",
+      "$BUILD/external-stalls.csv"
+    ]
+  },
+  {
+    "name": "itcm-stalls",
+    "argv": [
+      "$BUILD/sim",
+      "$BUILD/itcm-stalls.bin",
+      "0x80000000",
+      "0x90000000",
+      "4",
+      "3",
+      "$BUILD/itcm-stalls.vcd",
+      "$BUILD/itcm-stalls.csv"
+    ]
+  },
+  {
+    "name": "negative-self-check",
+    "argv": [
+      "$BUILD/sim",
+      "$BUILD/negative-self-check.bin",
+      "0x80000000",
+      "0x90000000",
+      "1",
+      "0",
+      "$BUILD/negative-self-check.vcd",
+      "$BUILD/negative-self-check.csv"
+    ]
+  },
+  {
+    "name": "baseline-frontend",
+    "argv": [
+      "$CIRCT_BIN/circt-verilog",
+      "--single-unit",
+      "--timescale=1ns/10ps",
+      "--Xslang=--translate-off-format",
+      "--Xslang=synopsys,translate_off,translate_on",
+      "--Xslang=-Wno-unconnected-output-port",
+      "-D",
+      "DISABLE_SV_ASSERTION=1",
+      "-I",
+      "$RTL_SOURCE/e203/core",
+      "--top=e203_cpu_top",
+      "-o",
+      "$BUILD/baseline.mlir",
+      "$RTL_SOURCE/e203/general/sirv_1cyc_sram_ctrl.v",
+      "$RTL_SOURCE/e203/general/sirv_gnrl_bufs.v",
+      "$RTL_SOURCE/e203/general/sirv_gnrl_dffs.v",
+      "$RTL_SOURCE/e203/general/sirv_gnrl_icbs.v",
+      "$RTL_SOURCE/e203/general/sirv_gnrl_ram.v",
+      "$RTL_SOURCE/e203/general/sirv_gnrl_xchecker.v",
+      "$RTL_SOURCE/e203/general/sirv_sim_ram.v",
+      "$RTL_SOURCE/e203/general/sirv_sram_icb_ctrl.v",
+      "$RTL_SOURCE/e203/core/e203_biu.v",
+      "$RTL_SOURCE/e203/core/e203_clk_ctrl.v",
+      "$RTL_SOURCE/e203/core/e203_clkgate.v",
+      "$RTL_SOURCE/e203/core/e203_core.v",
+      "$RTL_SOURCE/e203/core/e203_cpu.v",
+      "$RTL_SOURCE/e203/core/e203_cpu_top.v",
+      "$RTL_SOURCE/e203/core/e203_dtcm_ctrl.v",
+      "$RTL_SOURCE/e203/core/e203_dtcm_ram.v",
+      "$RTL_SOURCE/e203/core/e203_extend_csr.v",
+      "$RTL_SOURCE/e203/core/e203_exu.v",
+      "$RTL_SOURCE/e203/core/e203_exu_alu.v",
+      "$RTL_SOURCE/e203/core/e203_exu_alu_bjp.v",
+      "$RTL_SOURCE/e203/core/e203_exu_alu_csrctrl.v",
+      "$RTL_SOURCE/e203/core/e203_exu_alu_dpath.v",
+      "$RTL_SOURCE/e203/core/e203_exu_alu_lsuagu.v",
+      "$RTL_SOURCE/e203/core/e203_exu_alu_muldiv.v",
+      "$RTL_SOURCE/e203/core/e203_exu_alu_rglr.v",
+      "$RTL_SOURCE/e203/core/e203_exu_branchslv.v",
+      "$RTL_SOURCE/e203/core/e203_exu_commit.v",
+      "$RTL_SOURCE/e203/core/e203_exu_csr.v",
+      "$RTL_SOURCE/e203/core/e203_exu_decode.v",
+      "$RTL_SOURCE/e203/core/e203_exu_disp.v",
+      "$RTL_SOURCE/e203/core/e203_exu_excp.v",
+      "$RTL_SOURCE/e203/core/e203_exu_longpwbck.v",
+      "$RTL_SOURCE/e203/core/e203_exu_nice.v",
+      "$RTL_SOURCE/e203/core/e203_exu_oitf.v",
+      "$RTL_SOURCE/e203/core/e203_exu_regfile.v",
+      "$RTL_SOURCE/e203/core/e203_exu_wbck.v",
+      "$RTL_SOURCE/e203/core/e203_ifu.v",
+      "$RTL_SOURCE/e203/core/e203_ifu_ifetch.v",
+      "$RTL_SOURCE/e203/core/e203_ifu_ift2icb.v",
+      "$RTL_SOURCE/e203/core/e203_ifu_litebpu.v",
+      "$RTL_SOURCE/e203/core/e203_ifu_minidec.v",
+      "$RTL_SOURCE/e203/core/e203_irq_sync.v",
+      "$RTL_SOURCE/e203/core/e203_itcm_ctrl.v",
+      "$RTL_SOURCE/e203/core/e203_itcm_ram.v",
+      "$RTL_SOURCE/e203/core/e203_lsu.v",
+      "$RTL_SOURCE/e203/core/e203_lsu_ctrl.v",
+      "$RTL_SOURCE/e203/core/e203_reset_ctrl.v",
+      "$RTL_SOURCE/e203/core/e203_srams.v",
+      "$RTL_SOURCE/e203/subsys/e203_subsys_nice_core.v"
+    ]
+  },
+  {
+    "name": "baseline",
+    "argv": [
+      "$CIRCT_BIN/arcilator",
+      "$BUILD/baseline.mlir",
+      "-o",
+      "$BUILD/baseline.ll"
+    ]
+  },
+  {
+    "name": "baseline-sync",
+    "argv": [
+      "$CIRCT_BIN/arcilator",
+      "$BUILD/baseline.mlir",
+      "--async-resets-as-sync",
+      "--no-runtime",
+      "--no-generate-driver",
+      "--observe-memories",
+      "-o",
+      "$BUILD/baseline-sync.ll"
+    ]
+  },
+  {
+    "name": "no-early-flatten",
+    "argv": [
+      "$CIRCT_BIN/arcilator",
+      "$BUILD/ram.mlir",
+      "--async-resets-as-sync",
+      "--no-runtime",
+      "--no-generate-driver",
+      "--observe-memories",
+      "-o",
+      "$BUILD/no-early-flatten.ll"
+    ]
+  },
+  {
+    "name": "original-ram-flatten",
+    "argv": [
+      "$CIRCT_BIN/circt-opt",
+      "$BUILD/frontend.mlir",
+      "--hw-flatten-modules",
+      "--canonicalize",
+      "--cse",
+      "-o",
+      "$BUILD/original-ram-flat.mlir"
+    ]
+  },
+  {
+    "name": "original-ram",
+    "argv": [
+      "$CIRCT_BIN/arcilator",
+      "$BUILD/original-ram-flat.mlir",
+      "--async-resets-as-sync",
+      "--no-runtime",
+      "--no-generate-driver",
+      "--observe-memories",
+      "-o",
+      "$BUILD/original-ram.ll"
+    ]
+  },
+  {
+    "name": "keep-delays-frontend",
+    "argv": [
+      "$CIRCT_BIN/circt-verilog",
+      "--single-unit",
+      "--timescale=1ns/10ps",
+      "--Xslang=--translate-off-format",
+      "--Xslang=synopsys,translate_off,translate_on",
+      "--Xslang=-Wno-unconnected-output-port",
+      "-D",
+      "DISABLE_SV_ASSERTION=1",
+      "-I",
+      "$RTL_SOURCE/e203/core",
+      "--top=e203_sim",
+      "-o",
+      "$BUILD/keep-delays.mlir",
+      "-D",
+      "FPGA_SOURCE=1",
+      "$RTL_SOURCE/e203/general/sirv_1cyc_sram_ctrl.v",
+      "$RTL_SOURCE/e203/general/sirv_gnrl_bufs.v",
+      "$RTL_SOURCE/e203/general/sirv_gnrl_dffs.v",
+      "$RTL_SOURCE/e203/general/sirv_gnrl_icbs.v",
+      "$RTL_SOURCE/e203/general/sirv_gnrl_ram.v",
+      "$RTL_SOURCE/e203/general/sirv_gnrl_xchecker.v",
+      "$RTL_SOURCE/e203/general/sirv_sim_ram.v",
+      "$RTL_SOURCE/e203/general/sirv_sram_icb_ctrl.v",
+      "$RTL_SOURCE/e203/core/e203_biu.v",
+      "$RTL_SOURCE/e203/core/e203_clk_ctrl.v",
+      "$RTL_SOURCE/e203/core/e203_clkgate.v",
+      "$RTL_SOURCE/e203/core/e203_core.v",
+      "$RTL_SOURCE/e203/core/e203_cpu.v",
+      "$RTL_SOURCE/e203/core/e203_cpu_top.v",
+      "$RTL_SOURCE/e203/core/e203_dtcm_ctrl.v",
+      "$RTL_SOURCE/e203/core/e203_dtcm_ram.v",
+      "$RTL_SOURCE/e203/core/e203_extend_csr.v",
+      "$RTL_SOURCE/e203/core/e203_exu.v",
+      "$RTL_SOURCE/e203/core/e203_exu_alu.v",
+      "$RTL_SOURCE/e203/core/e203_exu_alu_bjp.v",
+      "$RTL_SOURCE/e203/core/e203_exu_alu_csrctrl.v",
+      "$RTL_SOURCE/e203/core/e203_exu_alu_dpath.v",
+      "$RTL_SOURCE/e203/core/e203_exu_alu_lsuagu.v",
+      "$RTL_SOURCE/e203/core/e203_exu_alu_muldiv.v",
+      "$RTL_SOURCE/e203/core/e203_exu_alu_rglr.v",
+      "$RTL_SOURCE/e203/core/e203_exu_branchslv.v",
+      "$RTL_SOURCE/e203/core/e203_exu_commit.v",
+      "$RTL_SOURCE/e203/core/e203_exu_csr.v",
+      "$RTL_SOURCE/e203/core/e203_exu_decode.v",
+      "$RTL_SOURCE/e203/core/e203_exu_disp.v",
+      "$RTL_SOURCE/e203/core/e203_exu_excp.v",
+      "$RTL_SOURCE/e203/core/e203_exu_longpwbck.v",
+      "$RTL_SOURCE/e203/core/e203_exu_nice.v",
+      "$RTL_SOURCE/e203/core/e203_exu_oitf.v",
+      "$RTL_SOURCE/e203/core/e203_exu_regfile.v",
+      "$RTL_SOURCE/e203/core/e203_exu_wbck.v",
+      "$RTL_SOURCE/e203/core/e203_ifu.v",
+      "$RTL_SOURCE/e203/core/e203_ifu_ifetch.v",
+      "$RTL_SOURCE/e203/core/e203_ifu_ift2icb.v",
+      "$RTL_SOURCE/e203/core/e203_ifu_litebpu.v",
+      "$RTL_SOURCE/e203/core/e203_ifu_minidec.v",
+      "$RTL_SOURCE/e203/core/e203_irq_sync.v",
+      "$RTL_SOURCE/e203/core/e203_itcm_ctrl.v",
+      "$RTL_SOURCE/e203/core/e203_itcm_ram.v",
+      "$RTL_SOURCE/e203/core/e203_lsu.v",
+      "$RTL_SOURCE/e203/core/e203_lsu_ctrl.v",
+      "$RTL_SOURCE/e203/core/e203_reset_ctrl.v",
+      "$RTL_SOURCE/e203/core/e203_srams.v",
+      "$RTL_SOURCE/e203/subsys/e203_subsys_nice_core.v",
+      "$PACKAGE/e203_sim.v"
+    ]
+  },
+  {
+    "name": "keep-delays-ram",
+    "argv": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "$PACKAGE/rewrite_ram.py",
+      "$BUILD/keep-delays.mlir",
+      "$BUILD/keep-delays-ram.mlir"
+    ]
+  },
+  {
+    "name": "keep-delays-flatten",
+    "argv": [
+      "$CIRCT_BIN/circt-opt",
+      "$BUILD/keep-delays-ram.mlir",
+      "--hw-flatten-modules",
+      "--canonicalize",
+      "--cse",
+      "-o",
+      "$BUILD/keep-delays-flat.mlir"
+    ]
+  },
+  {
+    "name": "keep-delays",
+    "argv": [
+      "$CIRCT_BIN/arcilator",
+      "$BUILD/keep-delays-flat.mlir",
+      "--async-resets-as-sync",
+      "--no-runtime",
+      "--no-generate-driver",
+      "--observe-memories",
+      "-o",
+      "$BUILD/keep-delays.ll"
+    ]
+  },
+  {
+    "name": "keep-clock-gates-frontend",
+    "argv": [
+      "$CIRCT_BIN/circt-verilog",
+      "--single-unit",
+      "--timescale=1ns/10ps",
+      "--Xslang=--translate-off-format",
+      "--Xslang=synopsys,translate_off,translate_on",
+      "--Xslang=-Wno-unconnected-output-port",
+      "-D",
+      "DISABLE_SV_ASSERTION=1",
+      "-I",
+      "$BUILD/rtl/e203/core",
+      "--top=e203_sim",
+      "-o",
+      "$BUILD/keep-clock-gates.mlir",
+      "$BUILD/rtl/e203/general/sirv_1cyc_sram_ctrl.v",
+      "$BUILD/rtl/e203/general/sirv_gnrl_bufs.v",
+      "$BUILD/rtl/e203/general/sirv_gnrl_dffs.v",
+      "$BUILD/rtl/e203/general/sirv_gnrl_icbs.v",
+      "$BUILD/rtl/e203/general/sirv_gnrl_ram.v",
+      "$BUILD/rtl/e203/general/sirv_gnrl_xchecker.v",
+      "$BUILD/rtl/e203/general/sirv_sim_ram.v",
+      "$BUILD/rtl/e203/general/sirv_sram_icb_ctrl.v",
+      "$BUILD/rtl/e203/core/e203_biu.v",
+      "$BUILD/rtl/e203/core/e203_clk_ctrl.v",
+      "$BUILD/rtl/e203/core/e203_clkgate.v",
+      "$BUILD/rtl/e203/core/e203_core.v",
+      "$BUILD/rtl/e203/core/e203_cpu.v",
+      "$BUILD/rtl/e203/core/e203_cpu_top.v",
+      "$BUILD/rtl/e203/core/e203_dtcm_ctrl.v",
+      "$BUILD/rtl/e203/core/e203_dtcm_ram.v",
+      "$BUILD/rtl/e203/core/e203_extend_csr.v",
+      "$BUILD/rtl/e203/core/e203_exu.v",
+      "$BUILD/rtl/e203/core/e203_exu_alu.v",
+      "$BUILD/rtl/e203/core/e203_exu_alu_bjp.v",
+      "$BUILD/rtl/e203/core/e203_exu_alu_csrctrl.v",
+      "$BUILD/rtl/e203/core/e203_exu_alu_dpath.v",
+      "$BUILD/rtl/e203/core/e203_exu_alu_lsuagu.v",
+      "$BUILD/rtl/e203/core/e203_exu_alu_muldiv.v",
+      "$BUILD/rtl/e203/core/e203_exu_alu_rglr.v",
+      "$BUILD/rtl/e203/core/e203_exu_branchslv.v",
+      "$BUILD/rtl/e203/core/e203_exu_commit.v",
+      "$BUILD/rtl/e203/core/e203_exu_csr.v",
+      "$BUILD/rtl/e203/core/e203_exu_decode.v",
+      "$BUILD/rtl/e203/core/e203_exu_disp.v",
+      "$BUILD/rtl/e203/core/e203_exu_excp.v",
+      "$BUILD/rtl/e203/core/e203_exu_longpwbck.v",
+      "$BUILD/rtl/e203/core/e203_exu_nice.v",
+      "$BUILD/rtl/e203/core/e203_exu_oitf.v",
+      "$BUILD/rtl/e203/core/e203_exu_regfile.v",
+      "$BUILD/rtl/e203/core/e203_exu_wbck.v",
+      "$BUILD/rtl/e203/core/e203_ifu.v",
+      "$BUILD/rtl/e203/core/e203_ifu_ifetch.v",
+      "$BUILD/rtl/e203/core/e203_ifu_ift2icb.v",
+      "$BUILD/rtl/e203/core/e203_ifu_litebpu.v",
+      "$BUILD/rtl/e203/core/e203_ifu_minidec.v",
+      "$BUILD/rtl/e203/core/e203_irq_sync.v",
+      "$BUILD/rtl/e203/core/e203_itcm_ctrl.v",
+      "$BUILD/rtl/e203/core/e203_itcm_ram.v",
+      "$BUILD/rtl/e203/core/e203_lsu.v",
+      "$BUILD/rtl/e203/core/e203_lsu_ctrl.v",
+      "$BUILD/rtl/e203/core/e203_reset_ctrl.v",
+      "$BUILD/rtl/e203/core/e203_srams.v",
+      "$BUILD/rtl/e203/subsys/e203_subsys_nice_core.v",
+      "$PACKAGE/e203_sim.v"
+    ]
+  },
+  {
+    "name": "keep-clock-gates-ram",
+    "argv": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "$PACKAGE/rewrite_ram.py",
+      "$BUILD/keep-clock-gates.mlir",
+      "$BUILD/keep-clock-gates-ram.mlir"
+    ]
+  },
+  {
+    "name": "keep-clock-gates-flatten",
+    "argv": [
+      "$CIRCT_BIN/circt-opt",
+      "$BUILD/keep-clock-gates-ram.mlir",
+      "--hw-flatten-modules",
+      "--canonicalize",
+      "--cse",
+      "-o",
+      "$BUILD/keep-clock-gates-flat.mlir"
+    ]
+  },
+  {
+    "name": "keep-clock-gates",
+    "argv": [
+      "$CIRCT_BIN/arcilator",
+      "$BUILD/keep-clock-gates-flat.mlir",
+      "--async-resets-as-sync",
+      "--no-runtime",
+      "--no-generate-driver",
+      "--observe-memories",
+      "-o",
+      "$BUILD/keep-clock-gates.ll"
+    ]
+  },
+  {
+    "name": "repro-packed-loop-frontend",
+    "argv": [
+      "$CIRCT_BIN/circt-verilog",
+      "$PACKAGE/repro/packed-loop.sv",
+      "--top=packed_loop",
+      "-o",
+      "$BUILD/repro-packed-loop.mlir"
+    ]
+  },
+  {
+    "name": "repro-packed-loop",
+    "argv": [
+      "$CIRCT_BIN/arcilator",
+      "$BUILD/repro-packed-loop.mlir",
+      "--no-runtime",
+      "--no-generate-driver",
+      "-o",
+      "$BUILD/repro-packed-loop.ll"
+    ]
+  },
+  {
+    "name": "repro-masked-ram-frontend",
+    "argv": [
+      "$CIRCT_BIN/circt-verilog",
+      "$PACKAGE/repro/masked-ram.sv",
+      "--top=masked_ram",
+      "-o",
+      "$BUILD/repro-masked-ram.mlir"
+    ]
+  },
+  {
+    "name": "repro-masked-ram",
+    "argv": [
+      "$CIRCT_BIN/arcilator",
+      "$BUILD/repro-masked-ram.mlir",
+      "--no-runtime",
+      "--no-generate-driver",
+      "-o",
+      "$BUILD/repro-masked-ram.ll"
+    ]
+  },
+  {
+    "name": "repro-packed-loop-flatten",
+    "argv": [
+      "$CIRCT_BIN/circt-opt",
+      "$BUILD/repro-packed-loop.mlir",
+      "--hw-flatten-modules",
+      "--canonicalize",
+      "--cse",
+      "-o",
+      "$BUILD/repro-packed-loop-flat.mlir"
+    ]
+  },
+  {
+    "name": "repro-packed-loop-fixed",
+    "argv": [
+      "$CIRCT_BIN/arcilator",
+      "$BUILD/repro-packed-loop-flat.mlir",
+      "--no-runtime",
+      "--no-generate-driver",
+      "-o",
+      "$BUILD/repro-packed-loop-fixed.ll"
+    ]
+  }
+]

@@ -1,0 +1,4 @@
+$BUILD/keep-clock-gates-flat.mlir:129:10: error: failed to legalize operation 'llhd.constant_time': %72 = "llhd.constant_time"() <{value = #llhd.time<0ns, 0d, 1e>}> : () -> !llhd.time
+    %0 = llhd.constant_time <0ns, 0d, 1e>
+         ^
+$BUILD/keep-clock-gates-flat.mlir:129:10: note: see current operation: %72 = "llhd.constant_time"() <{value = #llhd.time<0ns, 0d, 1e>}> : () -> !llhd.time

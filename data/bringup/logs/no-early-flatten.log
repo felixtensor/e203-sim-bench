@@ -1,0 +1,62 @@
+$BUILD/ram.mlir:3151:11: error: loop splitting did not eliminate all loops; loop detected
+    %32 = comb.and %14, %29 {sv.namehint = "step_req_clr"} : i1
+          ^
+$BUILD/ram.mlir:3151:11: note: see current operation: %1142 = "arc.call"(%1050, %1154, %720, %1141, %1140, %1139) <{arc = @e203_exu_excp_arc_5_split_5}> : (i1, i1, i1, i1, i1, i1) -> i1
+$BUILD/ram.mlir:3151:11: note: through operand 3 here:
+$BUILD/ram.mlir:2251:11: note: through operand 0 here:
+    %10 = comb.and %6, %9 : i1
+          ^
+$BUILD/ram.mlir:3646:11: note: through operand 8 here:
+    %70 = comb.concat %69, %false {sv.namehint = "pc_nxt"} : i31, i1
+          ^
+$BUILD/ram.mlir:3840:12: note: through operand 0 here:
+    %154 = comb.or %152, %153 : i1
+           ^
+$BUILD/ram.mlir:3840:12: note: through operand 0 here:
+$BUILD/ram.mlir:3745:11: note: through operand 0 here:
+    %59 = comb.and %21, %58, %23 {sv.namehint = "req_need_0uop"} : i1
+          ^
+$BUILD/ram.mlir:3812:12: note: through operand 4 here:
+    %126 = comb.or %122, %125 {sv.namehint = "ifu_icb_cmd_valid"} : i1
+           ^
+$BUILD/ram.mlir:3688:10: note: through operand 0 here:
+    %2 = comb.extract %u_e203_ifetch_rsp_bypbuf.o_dat from 32 : (i33) -> i1
+         ^
+$BUILD/ram.mlir:1070:10: note: through operand 0 here:
+    %0 = comb.concat %ifu2biu_icb_cmd_valid, %lsu2biu_icb_cmd_valid {sv.namehint = "arbt_bus_icb_cmd_valid"} : i1, i1
+         ^
+$BUILD/ram.mlir:625:10: note: through operand 0 here:
+    %2 = comb.and %68, %arbt_num_gt_1_gen.dp_1.u_sirv_gnrl_rspid_fifo.i_rdy : i1
+         ^
+$BUILD/ram.mlir:625:10: note: through operand 0 here:
+$BUILD/ram.mlir:669:11: note: through operand 2 here:
+    %46 = comb.or %32, %45 : i1
+          ^
+$BUILD/ram.mlir:1182:12: note: through operand 0 here:
+    %112 = comb.or %ifu2biu_icb_cmd_valid, %lsu2biu_icb_cmd_valid, %u_sirv_gnrl_icb_buffer.icb_buffer_active : i1
+           ^
+$BUILD/ram.mlir:4069:11: note: through operand 0 here:
+    %84 = comb.and %biu_icb_cmd_ready, %dtcm_icb_cmd_ready : i1
+          ^
+$BUILD/ram.mlir:4064:11: note: through operand 1 here:
+    %79 = comb.and %u_e203_lsu_splt_stage.i_rdy, %84, %itcm_icb_cmd_ready {sv.namehint = "arbt_icb_cmd_ready"} : i1
+          ^
+$BUILD/ram.mlir:758:11: note: through operand 0 here:
+    %47 = comb.or %32, %46 : i1
+          ^
+$BUILD/ram.mlir:4129:12: note: through operand 0 here:
+    %144 = comb.or %143, %u_e203_lsu_splt_stage.o_vld : i1
+           ^
+$BUILD/ram.mlir:4316:12: note: through operand 1 here:
+    %140 = comb.and %20, %139 : i1
+           ^
+$BUILD/ram.mlir:3302:10: note: through operand 1 here:
+    %3 = comb.and %2, %nice_o_ready : i1
+         ^
+$BUILD/ram.mlir:1343:11: note: through operand 1 here:
+    %29 = comb.or %22, %23, %24, %25, %26, %27, %28 : i1
+          ^
+$BUILD/ram.mlir:1343:11: note: through operand 0 here:
+$BUILD/ram.mlir:3151:11: note: through operand 0 here:
+    %32 = comb.and %14, %29 {sv.namehint = "step_req_clr"} : i1
+          ^

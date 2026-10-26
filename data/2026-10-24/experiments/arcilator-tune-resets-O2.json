@@ -1,0 +1,300 @@
+{
+  "simulator": "arcilator",
+  "tag": "arcilator-tune-resets-O2",
+  "host": "macOS-27.0.1-arm64-arm-64bit-Mach-O arm64",
+  "cxx": "c++",
+  "opt": "O2",
+  "arcilator_version": "LLVM (http://llvm.org/):\n  LLVM version 24.0.0git\n  Optimized build with assertions.\nCIRCT c91415010",
+  "build_stages_s": {
+    "frontend": 0.1941,
+    "rewrite-ram": 0.0316,
+    "early-flatten": 0.0468,
+    "arcilator": 0.2519,
+    "model-header": 0.0311,
+    "object": 0.4514,
+    "link": 0.5277
+  },
+  "build_total_s": 1.535,
+  "smoke": [
+    {
+      "case": "external",
+      "program": "smoke-external.bin",
+      "boot": "0x20000000",
+      "scratch": "0x20001000",
+      "latency": 1,
+      "stall": 0,
+      "expected_cycles": 611,
+      "observed_cycles": 611,
+      "output": "PASS cycles=611 external_reads=135 external_writes=5\nHARNESS sim_s=0.000451334",
+      "argv": [
+        "${REPO}/build/e203-bench/arcilator/tune-resets/sim",
+        "${REPO}/build/e203-bench/programs/smoke-external.bin",
+        "0x20000000",
+        "0x20001000",
+        "1",
+        "0",
+        "20000"
+      ]
+    },
+    {
+      "case": "external-dtcm",
+      "program": "smoke-external-dtcm.bin",
+      "boot": "0x20000000",
+      "scratch": "0x90000000",
+      "latency": 1,
+      "stall": 0,
+      "expected_cycles": 575,
+      "observed_cycles": 575,
+      "output": "PASS cycles=575 external_reads=130 external_writes=1\nHARNESS sim_s=0.000398250",
+      "argv": [
+        "${REPO}/build/e203-bench/arcilator/tune-resets/sim",
+        "${REPO}/build/e203-bench/programs/smoke-external-dtcm.bin",
+        "0x20000000",
+        "0x90000000",
+        "1",
+        "0",
+        "20000"
+      ]
+    },
+    {
+      "case": "itcm-dtcm",
+      "program": "smoke-itcm-dtcm.bin",
+      "boot": "0x80000000",
+      "scratch": "0x90000000",
+      "latency": 1,
+      "stall": 0,
+      "expected_cycles": 141,
+      "observed_cycles": 141,
+      "output": "PASS cycles=141 external_reads=0 external_writes=1\nHARNESS sim_s=0.000137625",
+      "argv": [
+        "${REPO}/build/e203-bench/arcilator/tune-resets/sim",
+        "${REPO}/build/e203-bench/programs/smoke-itcm-dtcm.bin",
+        "0x80000000",
+        "0x90000000",
+        "1",
+        "0",
+        "20000"
+      ]
+    },
+    {
+      "case": "itcm-data",
+      "program": "smoke-itcm-data.bin",
+      "boot": "0x80000000",
+      "scratch": "0x80001000",
+      "latency": 1,
+      "stall": 0,
+      "expected_cycles": 149,
+      "observed_cycles": 149,
+      "output": "PASS cycles=149 external_reads=0 external_writes=1\nHARNESS sim_s=0.000122458",
+      "argv": [
+        "${REPO}/build/e203-bench/arcilator/tune-resets/sim",
+        "${REPO}/build/e203-bench/programs/smoke-itcm-data.bin",
+        "0x80000000",
+        "0x80001000",
+        "1",
+        "0",
+        "20000"
+      ]
+    },
+    {
+      "case": "external-stalls",
+      "program": "smoke-external-stalls.bin",
+      "boot": "0x20000000",
+      "scratch": "0x20001000",
+      "latency": 4,
+      "stall": 3,
+      "expected_cycles": 1084,
+      "observed_cycles": 1084,
+      "output": "PASS cycles=1084 external_reads=135 external_writes=5\nHARNESS sim_s=0.000819458",
+      "argv": [
+        "${REPO}/build/e203-bench/arcilator/tune-resets/sim",
+        "${REPO}/build/e203-bench/programs/smoke-external-stalls.bin",
+        "0x20000000",
+        "0x20001000",
+        "4",
+        "3",
+        "20000"
+      ]
+    },
+    {
+      "case": "itcm-stalls",
+      "program": "smoke-itcm-stalls.bin",
+      "boot": "0x80000000",
+      "scratch": "0x90000000",
+      "latency": 4,
+      "stall": 3,
+      "expected_cycles": 142,
+      "observed_cycles": 142,
+      "output": "PASS cycles=142 external_reads=0 external_writes=1\nHARNESS sim_s=0.000105167",
+      "argv": [
+        "${REPO}/build/e203-bench/arcilator/tune-resets/sim",
+        "${REPO}/build/e203-bench/programs/smoke-itcm-stalls.bin",
+        "0x80000000",
+        "0x90000000",
+        "4",
+        "3",
+        "20000"
+      ]
+    },
+    {
+      "case": "negative-self-check",
+      "program": "smoke-negative-self-check.bin",
+      "boot": "0x80000000",
+      "scratch": "0x90000000",
+      "latency": 1,
+      "stall": 0,
+      "expected_cycles": 64,
+      "observed_cycles": 64,
+      "output": "FAIL cpu_self_check cycles=64\nHARNESS sim_s=0.000051167",
+      "argv": [
+        "${REPO}/build/e203-bench/arcilator/tune-resets/sim",
+        "${REPO}/build/e203-bench/programs/smoke-negative-self-check.bin",
+        "0x80000000",
+        "0x90000000",
+        "1",
+        "0",
+        "20000"
+      ]
+    }
+  ],
+  "bench": [
+    {
+      "case": "bench-itcm-dtcm",
+      "cycles": 1239908,
+      "wall_times_s": [
+        0.7372,
+        0.7334,
+        0.741,
+        0.7314,
+        0.736
+      ],
+      "median_s": 0.736,
+      "min_s": 0.7314,
+      "median_cycles_per_s": 1684597.5,
+      "sim_times_s": [
+        0.731313,
+        0.728577,
+        0.736646,
+        0.727138,
+        0.726763
+      ],
+      "median_sim_s": 0.728577,
+      "cycles_per_s_sim": 1701822.5
+    },
+    {
+      "case": "bench-external",
+      "cycles": 1919990,
+      "wall_times_s": [
+        1.1427,
+        1.1399,
+        1.1331,
+        1.1487,
+        1.1427
+      ],
+      "median_s": 1.1427,
+      "min_s": 1.1331,
+      "median_cycles_per_s": 1680194.7,
+      "sim_times_s": [
+        1.138712,
+        1.135829,
+        1.12908,
+        1.144284,
+        1.13841
+      ],
+      "median_sim_s": 1.13841,
+      "cycles_per_s_sim": 1686553.7
+    },
+    {
+      "case": "bench-external-stalls",
+      "cycles": 2670016,
+      "wall_times_s": [
+        1.5779,
+        1.5893,
+        1.5808,
+        1.5918,
+        1.5835
+      ],
+      "median_s": 1.5835,
+      "min_s": 1.5779,
+      "median_cycles_per_s": 1686102.9,
+      "sim_times_s": [
+        1.573792,
+        1.585017,
+        1.576549,
+        1.587428,
+        1.579165
+      ],
+      "median_sim_s": 1.579165,
+      "cycles_per_s_sim": 1690777.1
+    },
+    {
+      "case": "bench-small-itcm-dtcm",
+      "cycles": 124095,
+      "wall_times_s": [
+        0.0775,
+        0.0771,
+        0.0803,
+        0.0811,
+        0.0791
+      ],
+      "median_s": 0.0791,
+      "min_s": 0.0771,
+      "median_cycles_per_s": 1568650.2,
+      "sim_times_s": [
+        0.073214,
+        0.073302,
+        0.076077,
+        0.076965,
+        0.074899
+      ],
+      "median_sim_s": 0.074899,
+      "cycles_per_s_sim": 1656820.1
+    },
+    {
+      "case": "bench-small-external",
+      "cycles": 192174,
+      "wall_times_s": [
+        0.1169,
+        0.1172,
+        0.1174,
+        0.1183,
+        0.1178
+      ],
+      "median_s": 0.1174,
+      "min_s": 0.1169,
+      "median_cycles_per_s": 1636797.4,
+      "sim_times_s": [
+        0.1128,
+        0.112976,
+        0.113138,
+        0.114296,
+        0.113579
+      ],
+      "median_sim_s": 0.113138,
+      "cycles_per_s_sim": 1698580.5
+    },
+    {
+      "case": "bench-small-external-stalls",
+      "cycles": 267289,
+      "wall_times_s": [
+        0.1616,
+        0.1626,
+        0.1625,
+        0.1631,
+        0.1627
+      ],
+      "median_s": 0.1626,
+      "min_s": 0.1616,
+      "median_cycles_per_s": 1643948.7,
+      "sim_times_s": [
+        0.157322,
+        0.158329,
+        0.158362,
+        0.159042,
+        0.158439
+      ],
+      "median_sim_s": 0.158362,
+      "cycles_per_s_sim": 1687831.9
+    }
+  ]
+}

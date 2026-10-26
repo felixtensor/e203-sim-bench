@@ -1,0 +1,176 @@
+{
+  "host": {
+    "machine": "arm64",
+    "platform": "Darwin",
+    "cpu_count": 10,
+    "generated": "2026-10-24T11:10:07+00:00"
+  },
+  "steps": {
+    "arcilator-O2": {
+      "step": "arcilator-O2",
+      "argv": [
+        "${HOME}/anaconda3/bin/python3",
+        "${REPO}/bench/e203/arcilator/run_arcilator.py",
+        "--circt-bin",
+        "${HOME}/Projects/circt/build/bin",
+        "--build-subdir",
+        "O2",
+        "--opt",
+        "O2",
+        "--tag",
+        "arcilator-O2",
+        "--cases",
+        "all",
+        "--repeats",
+        "5"
+      ],
+      "started": "2026-10-24T11:10:07+00:00",
+      "wall_s": 25.045,
+      "returncode": 0,
+      "loadavg_before": [
+        3.42,
+        4.89,
+        6.3
+      ],
+      "loadavg_after": [
+        3.51,
+        4.8,
+        6.23
+      ],
+      "result_json": "${REPO}/build/e203-bench/results/arcilator-O2.json",
+      "result_exists": true,
+      "output_tail": "  bench bench-small-itcm-dtcm: cycle=124095 wall=0.078s sim=0.073s\n  bench bench-small-itcm-dtcm: cycle=124095 wall=0.078s sim=0.073s\n  bench bench-small-itcm-dtcm: cycle=124095 wall=0.078s sim=0.073s\n  bench bench-small-itcm-dtcm: cycle=124095 wall=0.077s sim=0.073s\n  bench bench-small-external: cycle=192174 wall=0.116s sim=0.112s\n  bench bench-small-external: cycle=192174 wall=0.118s sim=0.113s\n  bench bench-small-external: cycle=192174 wall=0.117s sim=0.112s\n  bench bench-small-external: cycle=192174 wall=0.118s sim=0.114s\n  bench bench-small-external: cycle=192174 wall=0.117s sim=0.112s\n  bench bench-small-external-stalls: cycle=267289 wall=0.162s sim=0.158s\n  bench bench-small-external-stalls: cycle=267289 wall=0.162s sim=0.158s\n  bench bench-small-external-stalls: cycle=267289 wall=0.161s sim=0.157s\n  bench bench-small-external-stalls: cycle=267289 wall=0.170s sim=0.165s\n  bench bench-small-external-stalls: cycle=267289 wall=0.165s sim=0.161s\nresults: ${REPO}/build/e203-bench/results/arcilator-O2.json",
+      "stderr_tail": ""
+    },
+    "verilator-5.028-O2": {
+      "step": "verilator-5.028-O2",
+      "argv": [
+        "${HOME}/anaconda3/bin/python3",
+        "${REPO}/bench/e203/verilator/run_bench.py",
+        "--verilator",
+        "${REPO}/.tmp/envs/verilator-5.028/bin/verilator",
+        "--opt",
+        "O2",
+        "--cases",
+        "all",
+        "--repeats",
+        "5"
+      ],
+      "started": "2026-10-24T11:10:26+00:00",
+      "wall_s": 19.232,
+      "returncode": 0,
+      "loadavg_before": [
+        3.51,
+        4.8,
+        6.23
+      ],
+      "loadavg_after": [
+        3.43,
+        4.7,
+        6.16
+      ],
+      "result_json": "${REPO}/build/e203-bench/results/verilator-5.028.json",
+      "result_exists": true,
+      "output_tail": "[run_bench] VCD check: Verilator traces are byte-identical to arcilator reference VCDs\n[run_bench] long timing runs\n[run_bench] bench external-stalls: 1 warmup + 5 timed runs (maxcycles=50000000)\n[run_bench] bench external-stalls: cycles=2670016 median=1.1045s min=1.1029s cycles/s=2417295\n[run_bench] bench external: 1 warmup + 5 timed runs (maxcycles=50000000)\n[run_bench] bench external: cycles=1919990 median=0.8029s min=0.7981s cycles/s=2391423\n[run_bench] bench itcm-dtcm: 1 warmup + 5 timed runs (maxcycles=50000000)\n[run_bench] bench itcm-dtcm: cycles=1239908 median=0.4876s min=0.4862s cycles/s=2542631\n[run_bench] bench small-external-stalls: 1 warmup + 5 timed runs (maxcycles=50000000)\n[run_bench] bench small-external-stalls: cycles=267289 median=0.1154s min=0.1151s cycles/s=2316969\n[run_bench] bench small-external: 1 warmup + 5 timed runs (maxcycles=50000000)\n[run_bench] bench small-external: cycles=192174 median=0.0849s min=0.0848s cycles/s=2263791\n[run_bench] bench small-itcm-dtcm: 1 warmup + 5 timed runs (maxcycles=50000000)\n[run_bench] bench small-itcm-dtcm: cycles=124095 median=0.0531s min=0.0530s cycles/s=2334844\n[run_bench] wrote build/e203-bench/results/verilator-5.028.json",
+      "stderr_tail": ""
+    },
+    "verilator-5.052-O2": {
+      "step": "verilator-5.052-O2",
+      "argv": [
+        "${HOME}/anaconda3/bin/python3",
+        "${REPO}/bench/e203/verilator/run_bench.py",
+        "--verilator",
+        "${REPO}/.tmp/envs/verilator-5.052/bin/verilator",
+        "--opt",
+        "O2",
+        "--cases",
+        "all",
+        "--repeats",
+        "5"
+      ],
+      "started": "2026-10-24T11:10:45+00:00",
+      "wall_s": 18.733,
+      "returncode": 0,
+      "loadavg_before": [
+        3.43,
+        4.7,
+        6.16
+      ],
+      "loadavg_after": [
+        3.76,
+        4.69,
+        6.12
+      ],
+      "result_json": "${REPO}/build/e203-bench/results/verilator-5.052.json",
+      "result_exists": true,
+      "output_tail": "[run_bench] VCD check: Verilator traces are byte-identical to arcilator reference VCDs\n[run_bench] long timing runs\n[run_bench] bench external-stalls: 1 warmup + 5 timed runs (maxcycles=50000000)\n[run_bench] bench external-stalls: cycles=2670016 median=1.0339s min=1.0315s cycles/s=2582567\n[run_bench] bench external: 1 warmup + 5 timed runs (maxcycles=50000000)\n[run_bench] bench external: cycles=1919990 median=0.7334s min=0.7325s cycles/s=2617824\n[run_bench] bench itcm-dtcm: 1 warmup + 5 timed runs (maxcycles=50000000)\n[run_bench] bench itcm-dtcm: cycles=1239908 median=0.4745s min=0.4715s cycles/s=2612921\n[run_bench] bench small-external-stalls: 1 warmup + 5 timed runs (maxcycles=50000000)\n[run_bench] bench small-external-stalls: cycles=267289 median=0.1101s min=0.1085s cycles/s=2426661\n[run_bench] bench small-external: 1 warmup + 5 timed runs (maxcycles=50000000)\n[run_bench] bench small-external: cycles=192174 median=0.0781s min=0.0774s cycles/s=2461948\n[run_bench] bench small-itcm-dtcm: 1 warmup + 5 timed runs (maxcycles=50000000)\n[run_bench] bench small-itcm-dtcm: cycles=124095 median=0.0520s min=0.0517s cycles/s=2385968\n[run_bench] wrote build/e203-bench/results/verilator-5.052.json",
+      "stderr_tail": ""
+    },
+    "iverilog-12.0": {
+      "step": "iverilog-12.0",
+      "argv": [
+        "${HOME}/anaconda3/bin/python3",
+        "${REPO}/bench/e203/iverilog/run_bench.py",
+        "--iverilog",
+        "${REPO}/.tmp/iverilog-12.0",
+        "--tag",
+        "12.0",
+        "--cases",
+        "bench",
+        "--repeats",
+        "5",
+        "--discard-first"
+      ],
+      "started": "2026-10-24T11:18:35+00:00",
+      "wall_s": 470.186,
+      "returncode": 0,
+      "loadavg_before": [
+        3.76,
+        4.69,
+        6.12
+      ],
+      "loadavg_after": [
+        5.91,
+        9.04,
+        8.21
+      ],
+      "result_json": "${REPO}/build/e203-bench/results/iverilog-12.0.json",
+      "result_exists": true,
+      "output_tail": "-- bench-small-external.bin: boot=0x20000000 scratch=0x20001000 latency=1 stall=0\n   run 1/5: PASS    cycles=192174 wall=  30.865s rate=6,226 cyc/s\n   run 2/5: PASS    cycles=192174 wall=  31.019s rate=6,195 cyc/s\n   run 3/5: PASS    cycles=192174 wall=  30.875s rate=6,224 cyc/s\n   run 4/5: PASS    cycles=192174 wall=  31.713s rate=6,060 cyc/s\n   run 5/5: PASS    cycles=192174 wall=  30.772s rate=6,245 cyc/s\n   cycles=192174 median=30.947s min=30.772s -> 6,210 cycles/s (min-time 6,245)\n-- bench-small-itcm-dtcm.bin: boot=0x80000000 scratch=0x90000000 latency=1 stall=0\n   run 1/5: PASS    cycles=124095 wall=  25.505s rate=4,865 cyc/s\n   run 2/5: PASS    cycles=124095 wall=  25.274s rate=4,910 cyc/s\n   run 3/5: PASS    cycles=124095 wall=  25.247s rate=4,915 cyc/s\n   run 4/5: PASS    cycles=124095 wall=  25.280s rate=4,909 cyc/s\n   run 5/5: PASS    cycles=124095 wall=  25.870s rate=4,797 cyc/s\n   cycles=124095 median=25.277s min=25.247s -> 4,909 cycles/s (min-time 4,915)\n== results written to ${REPO}/build/e203-bench/results/iverilog-12.0.json (exit 0) ==",
+      "stderr_tail": ""
+    },
+    "iverilog-13.0": {
+      "step": "iverilog-13.0",
+      "argv": [
+        "${HOME}/anaconda3/bin/python3",
+        "${REPO}/bench/e203/iverilog/run_bench.py",
+        "--iverilog",
+        "${REPO}/.tmp/iverilog-13.0",
+        "--tag",
+        "13.0",
+        "--cases",
+        "bench",
+        "--repeats",
+        "5",
+        "--discard-first"
+      ],
+      "started": "2026-10-24T11:26:22+00:00",
+      "wall_s": 367.538,
+      "returncode": 0,
+      "loadavg_before": [
+        4.78,
+        7.81,
+        7.82
+      ],
+      "loadavg_after": [
+        6.04,
+        9.81,
+        9.08
+      ],
+      "result_json": "${REPO}/build/e203-bench/results/iverilog-13.0.json",
+      "result_exists": true,
+      "output_tail": "-- bench-small-external.bin: boot=0x20000000 scratch=0x20001000 latency=1 stall=0\n   run 1/5: PASS    cycles=192174 wall=  25.432s rate=7,556 cyc/s\n   run 2/5: PASS    cycles=192174 wall=  24.358s rate=7,890 cyc/s\n   run 3/5: PASS    cycles=192174 wall=  24.240s rate=7,928 cyc/s\n   run 4/5: PASS    cycles=192174 wall=  24.338s rate=7,896 cyc/s\n   run 5/5: PASS    cycles=192174 wall=  24.318s rate=7,903 cyc/s\n   cycles=192174 median=24.328s min=24.240s -> 7,899 cycles/s (min-time 7,928)\n-- bench-small-itcm-dtcm.bin: boot=0x80000000 scratch=0x90000000 latency=1 stall=0\n   run 1/5: PASS    cycles=124095 wall=  19.015s rate=6,526 cyc/s\n   run 2/5: PASS    cycles=124095 wall=  19.051s rate=6,514 cyc/s\n   run 3/5: PASS    cycles=124095 wall=  19.163s rate=6,476 cyc/s\n   run 4/5: PASS    cycles=124095 wall=  19.300s rate=6,430 cyc/s\n   run 5/5: PASS    cycles=124095 wall=  19.379s rate=6,404 cyc/s\n   cycles=124095 median=19.232s min=19.051s -> 6,453 cycles/s (min-time 6,514)\n== results written to ${REPO}/build/e203-bench/results/iverilog-13.0.json (exit 0) ==",
+      "stderr_tail": ""
+    }
+  }
+}

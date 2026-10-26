@@ -1,0 +1,31 @@
+[run_bench] Verilator 5.028 2024-08-21 rev conda-forge build 0 (O2) -> build/e203-bench/verilator/verilator-5.028-O2
+[run_bench] stage 1/3: verilator --cc --exe --public-flat-rw ...
+[run_bench] $ /Users/xubuyun/Projects/circt-tests/.tmp/envs/verilator-5.028/bin/verilator --cc --exe --top-module e203_sim -Wno-fatal --timescale 1ns/10ps -DDISABLE_SV_ASSERTION=1 -DFPGA_SOURCE=1 -I/Users/xubuyun/Projects/circt-tests/build/e203-bench/rtl/e203/core -Mdir obj -o sim -f /Users/xubuyun/Projects/circt-tests/build/e203-bench/verilator/verilator-5.028-O2/sim-files.f /Users/xubuyun/Projects/circt-tests/bench/e203/verilator/bench_main.cpp
+[run_bench] stage 2/3: generate e203_mem_access.h from root header
+[run_bench] stage 3/3: make -j8 with /usr/bin/clang++ -O2
+[run_bench] $ /usr/bin/make -C /Users/xubuyun/Projects/circt-tests/build/e203-bench/verilator/verilator-5.028-O2/obj -f Ve203_sim.mk -j8 CXX=/usr/bin/clang++ LINK=/usr/bin/clang++ AR=/usr/bin/ar OPT_FAST=-O2 OPT_SLOW=-O2 OPT_GLOBAL=-O2 USER_CPPFLAGS=-I/Users/xubuyun/Projects/circt-tests/build/e203-bench/verilator/verilator-5.028-O2/obj
+[run_bench] build stages: elaborate=0.59s accessor=0.000s make=2.08s
+[run_bench] validation gate: 7 smoke cases
+[run_bench] validate /Users/xubuyun/Projects/circt-tests/build/e203-bench/verilator/verilator-5.028-O2/obj/sim /Users/xubuyun/Projects/circt-tests/build/e203-bench/programs/smoke-external.bin
+[run_bench] validate /Users/xubuyun/Projects/circt-tests/build/e203-bench/verilator/verilator-5.028-O2/obj/sim /Users/xubuyun/Projects/circt-tests/build/e203-bench/programs/smoke-external-dtcm.bin
+[run_bench] validate /Users/xubuyun/Projects/circt-tests/build/e203-bench/verilator/verilator-5.028-O2/obj/sim /Users/xubuyun/Projects/circt-tests/build/e203-bench/programs/smoke-itcm-dtcm.bin
+[run_bench] validate /Users/xubuyun/Projects/circt-tests/build/e203-bench/verilator/verilator-5.028-O2/obj/sim /Users/xubuyun/Projects/circt-tests/build/e203-bench/programs/smoke-itcm-data.bin
+[run_bench] validate /Users/xubuyun/Projects/circt-tests/build/e203-bench/verilator/verilator-5.028-O2/obj/sim /Users/xubuyun/Projects/circt-tests/build/e203-bench/programs/smoke-external-stalls.bin
+[run_bench] validate /Users/xubuyun/Projects/circt-tests/build/e203-bench/verilator/verilator-5.028-O2/obj/sim /Users/xubuyun/Projects/circt-tests/build/e203-bench/programs/smoke-itcm-stalls.bin
+[run_bench] validate /Users/xubuyun/Projects/circt-tests/build/e203-bench/verilator/verilator-5.028-O2/obj/sim /Users/xubuyun/Projects/circt-tests/build/e203-bench/programs/smoke-negative-self-check.bin
+[run_bench] validation passed: all 7 smoke cycle counts match arcilator
+[run_bench] VCD check: Verilator traces are byte-identical to arcilator reference VCDs
+[run_bench] long timing runs
+[run_bench] bench external-stalls: 1 warmup + 5 timed runs (maxcycles=50000000)
+[run_bench] bench external-stalls: cycles=2670016 median=1.1045s min=1.1029s cycles/s=2417295
+[run_bench] bench external: 1 warmup + 5 timed runs (maxcycles=50000000)
+[run_bench] bench external: cycles=1919990 median=0.8029s min=0.7981s cycles/s=2391423
+[run_bench] bench itcm-dtcm: 1 warmup + 5 timed runs (maxcycles=50000000)
+[run_bench] bench itcm-dtcm: cycles=1239908 median=0.4876s min=0.4862s cycles/s=2542631
+[run_bench] bench small-external-stalls: 1 warmup + 5 timed runs (maxcycles=50000000)
+[run_bench] bench small-external-stalls: cycles=267289 median=0.1154s min=0.1151s cycles/s=2316969
+[run_bench] bench small-external: 1 warmup + 5 timed runs (maxcycles=50000000)
+[run_bench] bench small-external: cycles=192174 median=0.0849s min=0.0848s cycles/s=2263791
+[run_bench] bench small-itcm-dtcm: 1 warmup + 5 timed runs (maxcycles=50000000)
+[run_bench] bench small-itcm-dtcm: cycles=124095 median=0.0531s min=0.0530s cycles/s=2334844
+[run_bench] wrote build/e203-bench/results/verilator-5.028.json

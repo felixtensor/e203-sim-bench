@@ -1,0 +1,52 @@
+[frontend] 0.21s
+[rewrite-ram] 0.04s
+[early-flatten] 0.05s
+[arcilator] 0.24s
+[model-header] 0.03s
+[object] 0.45s
+[link] 0.53s
+  smoke external: PASS cycles=611 external_reads=135 external_writes=5
+HARNESS sim_s=0.000475500
+  smoke external-dtcm: PASS cycles=575 external_reads=130 external_writes=1
+HARNESS sim_s=0.000396000
+  smoke itcm-dtcm: PASS cycles=141 external_reads=0 external_writes=1
+HARNESS sim_s=0.000102208
+  smoke itcm-data: PASS cycles=149 external_reads=0 external_writes=1
+HARNESS sim_s=0.000101958
+  smoke external-stalls: PASS cycles=1084 external_reads=135 external_writes=5
+HARNESS sim_s=0.000690083
+  smoke itcm-stalls: PASS cycles=142 external_reads=0 external_writes=1
+HARNESS sim_s=0.000099042
+  smoke negative-self-check: FAIL cpu_self_check cycles=64
+HARNESS sim_s=0.000041917
+  bench bench-itcm-dtcm: cycle=1239908 wall=0.729s sim=0.724s
+  bench bench-itcm-dtcm: cycle=1239908 wall=0.746s sim=0.742s
+  bench bench-itcm-dtcm: cycle=1239908 wall=0.731s sim=0.727s
+  bench bench-itcm-dtcm: cycle=1239908 wall=0.732s sim=0.728s
+  bench bench-itcm-dtcm: cycle=1239908 wall=0.729s sim=0.725s
+  bench bench-external: cycle=1919990 wall=1.141s sim=1.137s
+  bench bench-external: cycle=1919990 wall=1.132s sim=1.128s
+  bench bench-external: cycle=1919990 wall=1.138s sim=1.133s
+  bench bench-external: cycle=1919990 wall=1.132s sim=1.128s
+  bench bench-external: cycle=1919990 wall=1.146s sim=1.141s
+  bench bench-external-stalls: cycle=2670016 wall=1.568s sim=1.564s
+  bench bench-external-stalls: cycle=2670016 wall=1.578s sim=1.574s
+  bench bench-external-stalls: cycle=2670016 wall=1.582s sim=1.578s
+  bench bench-external-stalls: cycle=2670016 wall=1.585s sim=1.581s
+  bench bench-external-stalls: cycle=2670016 wall=1.581s sim=1.577s
+  bench bench-small-itcm-dtcm: cycle=124095 wall=0.077s sim=0.073s
+  bench bench-small-itcm-dtcm: cycle=124095 wall=0.078s sim=0.073s
+  bench bench-small-itcm-dtcm: cycle=124095 wall=0.078s sim=0.073s
+  bench bench-small-itcm-dtcm: cycle=124095 wall=0.078s sim=0.073s
+  bench bench-small-itcm-dtcm: cycle=124095 wall=0.077s sim=0.073s
+  bench bench-small-external: cycle=192174 wall=0.116s sim=0.112s
+  bench bench-small-external: cycle=192174 wall=0.118s sim=0.113s
+  bench bench-small-external: cycle=192174 wall=0.117s sim=0.112s
+  bench bench-small-external: cycle=192174 wall=0.118s sim=0.114s
+  bench bench-small-external: cycle=192174 wall=0.117s sim=0.112s
+  bench bench-small-external-stalls: cycle=267289 wall=0.162s sim=0.158s
+  bench bench-small-external-stalls: cycle=267289 wall=0.162s sim=0.158s
+  bench bench-small-external-stalls: cycle=267289 wall=0.161s sim=0.157s
+  bench bench-small-external-stalls: cycle=267289 wall=0.170s sim=0.165s
+  bench bench-small-external-stalls: cycle=267289 wall=0.165s sim=0.161s
+results: /Users/xubuyun/Projects/circt-tests/build/e203-bench/results/arcilator-O2.json

@@ -1,0 +1,14 @@
+# test boot scratch latency stall cycles reads writes status
+smoke-external 0x20000000 0x20001000 1 0 611 135 5 PASS
+smoke-external-dtcm 0x20000000 0x90000000 1 0 575 130 1 PASS
+smoke-itcm-dtcm 0x80000000 0x90000000 1 0 141 0 1 PASS
+smoke-itcm-data 0x80000000 0x80001000 1 0 149 0 1 PASS
+smoke-external-stalls 0x20000000 0x20001000 4 3 1084 135 5 PASS
+smoke-itcm-stalls 0x80000000 0x90000000 4 3 142 0 1 PASS
+smoke-negative-self-check 0x80000000 0x90000000 1 0 64 None None FAIL
+bench-external-stalls 0x20000000 0x20001000 4 3 2670016 240022 20005 PASS
+bench-external 0x20000000 0x20001000 1 0 1919990 240022 20005 PASS
+bench-itcm-dtcm 0x80000000 0x90000000 1 0 1239908 0 1 PASS
+bench-small-external-stalls 0x20000000 0x20001000 4 3 267289 24021 2005 PASS
+bench-small-external 0x20000000 0x20001000 1 0 192174 24021 2005 PASS
+bench-small-itcm-dtcm 0x80000000 0x90000000 1 0 124095 0 1 PASS
