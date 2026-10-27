@@ -1,5 +1,0 @@
-E203 simulation benchmark
-
-Repository-authored testbenches, scripts and documentation: Apache-2.0.
-E203 is an external Apache-2.0 submodule; its upstream notices are retained.
-CIRCT/LLVM, Verilator, and Icarus are external tools with their own licenses.

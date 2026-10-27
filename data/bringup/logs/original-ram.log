@@ -1,4 +1,0 @@
-$BUILD/original-ram-flat.mlir:3401:13: error: failed to legalize operation 'llhd.prb' that was explicitly marked illegal: %368 = "llhd.prb"(%367) : (!llhd.ref<!hw.array<8192xi64>>) -> !hw.array<8192xi64>
-    %3064 = llhd.prb %cpu2Fu_e203_srams2Fu_e203_itcm_ram2Fu_e203_itcm_gnrl_ram2Fu_sirv_sim_ram2Fmem_r : !hw.array<8192xi64>
-            ^
-$BUILD/original-ram-flat.mlir:3401:13: note: see current operation: %368 = "llhd.prb"(%367) : (!llhd.ref<!hw.array<8192xi64>>) -> !hw.array<8192xi64>

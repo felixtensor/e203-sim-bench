@@ -1,61 +1,70 @@
-# Results and measurement method
+# Results
 
-Recorded dataset: [data/2026-10-24](../data/2026-10-24/). Date: 2026-10-24. Host: Apple M1 Pro, 10 cores, 32 GB, macOS 27.0.1, AC power. Native models/driver: Apple clang 21.0.0, `-O2`, single-threaded. One warm-up, five measured runs, no waveforms.
+All timing numbers below come from `make bench`; correctness numbers come from `make smoke` and `make bench`. Both use the same patched `e203_cpu_top` RTL (see [workarounds.md](workarounds.md)) and the same official E203 `.verilog` images. Measured 2026-10-27. Every recorded benchmark and default smoke run is checked for `PASS=1` and an exact cycle count, and the stored logs are kept under `build/results/<TAG>/`. Each column therefore simulates the same work.
 
-| Component | Recorded version |
+## Environment
+
+| Item | Value |
 | --- | --- |
+| Host | Apple M1 Pro, 10 cores, 32 GB, macOS 27.0.1 |
+| C++ compiler | Apple clang 21.0.0 (`clang-2100.3.34.2`), `-O2 -std=c++17`, single-threaded |
 | E203 | `9f3e34f337f5d0a1236a285871ffa2032491617a` |
-| CIRCT | `c914150104ad15efa6b16ec4e5e6f86736fe15d8`; LLVM 24.0.0git; slang 11.0.0+0; assertions enabled |
-| Verilator | 5.028 / 5.052 |
-| Icarus | 12.0 / 13.0 |
+| CIRCT | `c914150104ad15efa6b16ec4e5e6f86736fe15d8` (LLVM 24.0.0git, slang 11.0.0) |
+| Verilator | 5.028, 5.052 (conda-forge builds) |
+| Icarus Verilog | 12.0, 13.0 (`-g2012`) |
 
-## Identical small-input comparison
+Native build flags: arcilator uses this repo's default `LUT=false`, then `opt -O2` followed by `llc -O2`; Verilator's generated code is built with `OPT_FAST=OPT_SLOW=OPT_GLOBAL=-O2` (Verilator's own default for fast/global code is `-Os`). All native code is therefore compiled with `-O2`. The `without opt -O2` row uses `OPT_FLAGS=` and `llc -O2` only.
 
-Each row runs the same binaries. Units: simulated cycles per host second.
+## Throughput (simulated cycles per host second, higher is better)
 
-| Configuration | ITCM/DTCM | External | External with stalls |
-| --- | ---: | ---: | ---: |
-| arcilator, LUT off | 2.67 M | 2.65 M | 2.64 M |
-| arcilator, default LUT | 1.70 M | 1.71 M | 1.70 M |
-| Verilator 5.028 | 2.57 M | 2.41 M | 2.42 M |
-| Verilator 5.052 | 2.65 M | 2.63 M | 2.55 M |
-| Icarus 12.0 | 4.91 k | 6.21 k | 7.20 k |
-| Icarus 13.0 | 6.45 k | 7.90 k | 9.11 k |
+| Simulator | Dhrystone (166,667 cycles) | CoreMark (1,069,745 cycles) |
+| --- | ---: | ---: |
+| Verilator 5.052 | **2.28 M** (0.073 s) | **2.31 M** (0.463 s) |
+| Verilator 5.028 | 1.54 M (0.108 s) | 1.57 M (0.682 s) |
+| arcilator, `LUT=false` (project default) | 1.11 M (0.151 s) | 1.11 M (0.965 s) |
+| arcilator, without `opt -O2` | 0.94 M (0.177 s) | 0.95 M (1.128 s) |
+| arcilator, `LUT=true` | 0.88 M (0.188 s) | 0.89 M (1.202 s) |
+| Icarus 13.0 | 2.25 k (74.2 s) | 2.82 k (379 s) |
+| Icarus 12.0 | 1.52 k (109.5 s) | - |
 
-Native throughput uses the driver/model loop timer, excluding process startup and program loading. Icarus uses process wall time. `make compare` labels those metrics explicitly. Background host load and short native runs limit how much to infer from small differences.
+- Native models (arcilator, Verilator) report the in-process simulation loop time (`HARNESS sim_s`), which excludes process startup, image loading and reset. arcilator and Verilator share the same C++ harness; Icarus uses `sim/tb.v`. Icarus reports `vvp` wall time, which includes process startup and image loading. The Icarus startup cost is small relative to its 74–379 s runs, but the two metrics are not identical in scope.
+- Median of 5 timed runs after 1 warm-up for native models. Icarus uses 3 timed runs for Dhrystone and 1 for CoreMark. `SIM=all` with the default `REPEATS=5` takes roughly 45 minutes on this host because of the Icarus rows.
+- No VCD is written in benchmark runs. Verilator is built without `--trace` unless `WAVE=1`; arcilator only dumps when `--vcd` is passed.
+- For Dhrystone and CoreMark, cycle counts are post-reset harness cycles until the exit signature. They include benchmark startup, UART printing and the 16-cycle exit spin; they are not retired instructions or the benchmarks' internal `User_Cycle` / `Total ticks`.
+- The official Dhrystone image runs only 2 loops and self-reports `User_Cycle=911`; the other ~165,000 harness cycles are startup, output and exit overhead. Treat the Dhrystone column as an end-to-end simulator workload, not as a Dhrystone core-performance measurement. CoreMark's internal `Total ticks` is 930,733 of the 1,069,745 harness cycles, so it is dominated by the benchmark itself.
+- Benchmark self-reports: Dhrystone `1.249510 DMIPS/MHz`, CoreMark `2.148844 CoreMark/MHz` (identical on all simulators).
 
-## Longer native runs
+Observations:
 
-| Configuration | ITCM/DTCM | External | External with stalls |
-| --- | ---: | ---: | ---: |
-| arcilator, LUT off | 2.650 M | 2.643 M | 2.634 M |
-| arcilator, default LUT | 1.707 M | 1.694 M | 1.693 M |
-| Verilator 5.028 | 2.569 M | 2.406 M | 2.429 M |
-| Verilator 5.052 | 2.642 M | 2.636 M | 2.595 M |
+- On this core, Verilator 5.052 is about 2.1× faster than arcilator with `LUT=false`. Verilator 5.028 → 5.052 gains about 47–48%.
+- For arcilator, `--lookup-tables=false` is about 25% faster than arcilator's own default (`LUT=true`), and adding `opt -O2` before `llc -O2` gains about 17% on both benchmarks (0.94 M → 1.11 M; see [workarounds.md](workarounds.md)).
+- Icarus 13.0 is about 1.5× faster than 12.0 on Dhrystone. It remains roughly three orders of magnitude slower than the native models: about 500× slower than arcilator and 1,000× slower than Verilator 5.052 on Dhrystone, and about 400×/830× on CoreMark.
 
-Arcilator with LUT off and Verilator 5.052 have similar throughput for these workloads. This is not a general simulator ranking. Recorded clean model builds took 1.62 s for arcilator LUT-off, 2.67/3.20 s for Verilator, and 0.20/0.22 s for Icarus. These are individual observations, excluding tool installation/download time.
+These results cover one core, one host, one compiler and fixed build flags. They are not a general ranking of the simulators. Short native runs (0.07–1.2 s) and background host load limit how much to infer from small differences; the large gaps above are stable across the recorded runs.
 
-## What is simulated
+## Correctness
 
-`e203_cpu_top` with 64 KiB ITCM, 64 KiB DTCM, NICE configuration, and a 64 KiB external ICB memory. Debug, interrupts, and unused peripherals are tied off. All tools use the shared wrapper, FPGA mode, and five removed DFF delays.
+All 67 official RV32IMAC ISA tests (`rv32{ui,um,ua,uc,mi}-p-*`) pass on arcilator, Verilator and Icarus 13.0 with identical cycle counts (`make smoke SIM=all SMOKE=all`). For example, `rv32ui-p-add` = 17,995 cycles and `rv32uc-p-rvc` = 17,728 cycles on all three. Dhrystone and CoreMark also finish at exactly the same cycle on all three simulators. In total, all 69 recorded cases (67 ISA tests plus the two benchmarks) agree across the three simulators.
 
-The testbench applies inputs while the clock is low, snapshots handshakes, then raises the clock. Reset lasts 16 cycles. One external command may be outstanding. Responses appear after the selected latency; command-ready is suppressed periodically for stall cases.
+These tests establish observed agreement on these images; they are not a formal proof of RTL or ISA equivalence.
 
-Smoke programs check arithmetic, loops, multiplication/division, mixed 16/32-bit fetch boundaries, signed/unsigned byte and halfword loads, and word accesses. Success requires a CPU write to `0x20002000` and the scratch signature `37 00 00 00 80 00 2e fb a5 00 00 00`. The negative program must write failure. Expected outcomes and cycles are listed in `programs/cases.tsv`.
-
-Timing programs execute a checksum loop with add, multiply, unsigned division, and load/store operations. The small input uses 2,000 iterations; large uses 20,000. Cycle counts are 124,095 / 192,174 / 267,289 for small and 1,239,908 / 1,919,990 / 2,670,016 for large. Counts include startup/reset and are zero-based, not retired instructions.
-
-## Repeat measurements
+## Reproduce
 
 ```sh
-make bench SIM=arcilator CIRCT_BIN=/path/to/bin
-make bench SIM=verilator
-make bench SIM=iverilog
-make compare
+make bench SIM=all SIZE=all CIRCT_BIN=/path/to/circt/build/bin   # 3-way table
+make -B bench SIM=verilator SIZE=all VERILATOR=/path/to/5.028/bin/verilator TAG=verilator-5.028
+make -B bench SIM=arcilator SIZE=all LUT=true TAG=arcilator-lut-on CIRCT_BIN=...
+make -B bench SIM=arcilator SIZE=all OPT_FLAGS= TAG=arcilator-no-opt CIRCT_BIN=...
+
+# Icarus table rows use 3 Dhrystone and 1 CoreMark sample.
+make -B bench SIM=iverilog SIZE=small REPEATS=3 TAG=iverilog-12.0 \
+  IVERILOG=/path/to/12.0/iverilog VVP=/path/to/12.0/vvp
+make -B bench SIM=iverilog SIZE=small REPEATS=3 TAG=iverilog
+make bench SIM=iverilog SIZE=large REPEATS=1 TAG=iverilog
+
+make compare                                                       # all tags side by side
 ```
 
-Commands, per-run output, and timers go to `build/results/<sim>/`; measured samples are in `measurements.tsv`. `scripts/run.sh` validates every result before recording a sample. `scripts/compare.awk` computes medians and only compares matching program names.
+`TAG` is not supported with `SIM=all`; run one simulator at a time when comparing versions or configurations. The Icarus rows in the table used `REPEATS=3` for Dhrystone and `REPEATS=1` for CoreMark; each run also has one untimed warm-up. The three-way `SIM=all` command uses the default `REPEATS=5` for every simulator and is much slower.
 
-The archived data predates this source cleanup. Current assembly reproduces the original 13 binary hashes, and native smoke traces match the archive. Rerun timing measurements for the current drivers/toolchain; do not present archived timings as measurements of modified code.
-
-The six primary JSON files are at the dataset root; secondary optimization/threading runs are under `experiments/`, captured output under `logs/`. Personal paths in JSON were normalized, numerical measurements retained. Logs may contain historical paths. New builds and downloaded tools/models are ignored by Git. The tests establish selected observed behavior, not full RTL or ISA equivalence.
+Per-run logs, commands, timers and the simulator version are written to `build/results/<TAG>/` (ignored by Git). Medians are computed by [`scripts/compare.awk`](../scripts/compare.awk).

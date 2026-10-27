@@ -1,4 +1,0 @@
-$BUILD/baseline.mlir:4785:19: error: 'seq.firreg' op only synchronous resets are currently supported
-    %rst_sync_r = seq.firreg %1 clock %clk reset async %2, %c0_i2 : i2
-                  ^
-$BUILD/baseline.mlir:4785:19: note: see current operation: %5 = "seq.firreg"(%3, %arg0, %4, %0) <{isAsync, name = "rst_sync_r"}> : (i2, !seq.clock, i1, i2) -> i2
