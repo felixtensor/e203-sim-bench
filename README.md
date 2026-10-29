@@ -7,14 +7,19 @@ Compare CIRCT `arcilator`, Verilator, and Icarus Verilog on the upstream Humming
 ```sh
 git clone --recurse-submodules https://github.com/felixtensor/e203-sim-bench.git
 cd e203-sim-bench
+```
+
+Follow [Environment Setup](docs/setup.md) to install the tools and set `CIRCT_BIN` and `PYTHON`, then run in the same shell:
+
+```sh
 make setup
 
-make smoke SIM=all CIRCT_BIN=/path/to/circt/build/bin
-make bench SIM=all SIZE=small REPEATS=1 CIRCT_BIN=/path/to/circt/build/bin
+make smoke SIM=all
+make bench SIM=all SIZE=small REPEATS=1
 make compare
 ```
 
-`make setup` prepares the submodule and patched RTL. `arcilator` needs Python 3 + `jinja2`; set `PYTHON=...` if needed. Tools default to `PATH`.
+`make setup` prepares the submodule and patched RTL; it does not install tools. Tools default to `PATH` unless overridden.
 
 ## Commands
 
@@ -58,6 +63,6 @@ make -B bench SIM=arcilator SIZE=all LUT=true TAG=arcilator-lut-on CIRCT_BIN=...
 - `sim/` — native harness (`main.cpp`) and Icarus testbench (`tb.v`)
 - `scripts/` — test/bench runner, median table, RAM rewrite
 - `patches/` — DFF delay removal
-- `docs/` — results and arcilator workarounds
+- `docs/` — environment setup, results and arcilator workarounds
 - `repro/` — standalone CIRCT/arcilator reproducers
 - `ext/e203/` — upstream E203 submodule
