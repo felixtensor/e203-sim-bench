@@ -57,14 +57,14 @@ make -B bench SIM=arcilator TOP=e203_sim SIZE=all TAG=arcilator-wrap CIRCT_BIN=.
 
 ## Arcilator Note
 
-`circt-verilog` + `arcilator` cannot compile unmodified E203 RTL directly. Five fixes are required: strip DFF `#1` delays, `FPGA_SOURCE=1`, lower `sirv_sim_ram` byte masks to `arc.memory`, flatten HW modules before `arcilator`, and `--async-resets-as-sync`. `TOP=e203_sim`, `LUT`, and `OPT_FLAGS` only affect speed. Details: [docs/workarounds.md](docs/workarounds.md).
+`circt-verilog` + `arcilator` cannot compile unmodified E203 RTL directly. Five RTL/pipeline fixes (plus a CIRCT `InferClockPorts` lifetime patch on Linux) are required: strip DFF `#1` delays, `FPGA_SOURCE=1`, lower `sirv_sim_ram` byte masks to `arc.memory`, flatten HW modules before `arcilator`, and `--async-resets-as-sync`. `TOP=e203_sim`, `LUT`, and `OPT_FLAGS` only affect speed. Details: [docs/workarounds.md](docs/workarounds.md).
 
 ## Layout
 
 - `Makefile` — build and benchmark targets
 - `sim/` — native harness (`main.cpp`), tie-off wrapper (`e203_sim.v`), and Icarus testbench (`tb.v`)
 - `scripts/` — test/bench runner, median table, RAM rewrite
-- `patches/` — DFF delay removal
+- `patches/` — RTL and CIRCT patches
 - `docs/` — environment setup, results and arcilator workarounds
 - `repro/` — standalone CIRCT/arcilator reproducers
 - `ext/e203/` — upstream E203 submodule
