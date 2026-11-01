@@ -2,6 +2,7 @@
 .DELETE_ON_ERROR:
 
 SIM ?= arcilator
+TOP ?= e203_cpu_top
 TAG ?=
 TEST ?= rv32ui-p-add
 SMOKE ?= default
@@ -32,9 +33,14 @@ LUT ?= false
 ROOT := $(CURDIR)
 HOST_TARGET = $(if $(filter Darwin,$(shell uname -s)),-mtriple=$(shell uname -m)-apple-macos,)
 
-TOP = e203_cpu_top
+ifeq ($(filter $(TOP),e203_cpu_top e203_sim),)
+$(error TOP must be e203_cpu_top or e203_sim)
+endif
+
 CORE = $(filter-out build/rtl/e203/core/config.v build/rtl/e203/core/e203_defines.v,$(sort $(wildcard build/rtl/e203/core/*.v)))
-RTL = $(sort $(wildcard build/rtl/e203/general/*.v)) $(CORE) build/rtl/e203/subsys/e203_subsys_nice_core.v
+RTL_BASE = $(sort $(wildcard build/rtl/e203/general/*.v)) $(CORE) build/rtl/e203/subsys/e203_subsys_nice_core.v
+RTL = $(RTL_BASE) $(if $(filter e203_sim,$(TOP)),sim/e203_sim.v)
+WRAP_CPPFLAG = $(if $(filter e203_sim,$(TOP)),-DUSE_WRAPPER)
 DEFINES = -DDISABLE_SV_ASSERTION=1 -DFPGA_SOURCE=1
 INCLUDE = -Ibuild/rtl/e203/core
 
@@ -75,7 +81,7 @@ build/rtl/.stamp: patches/remove-dff-delays.patch
 
 # arcilator: Verilog -> Moore/Core -> explicit SRAMs -> flattened HW -> LLVM -> C++ header.
 arcilator: build/arcilator/sim
-build/arcilator/frontend.mlir: build/rtl/.stamp
+build/arcilator/frontend.mlir: build/rtl/.stamp $(if $(filter e203_sim,$(TOP)),sim/e203_sim.v)
 	mkdir -p build/arcilator
 	"$(CIRCT_VERILOG)" --single-unit --timescale=1ns/10ps \
 	  --Xslang=--translate-off-format --Xslang=synopsys,translate_off,translate_on \
@@ -100,40 +106,40 @@ build/arcilator/model.o: build/arcilator/model.ll
 	fi; \
 	"$(LLC)" -O2 -filetype=obj $(HOST_TARGET) "$$opt_ir" -o $@
 build/arcilator/sim: build/arcilator/model.o build/arcilator/model.h sim/main.cpp
-	$(CXX) $(CXXFLAGS) -DUSE_ARCILATOR -Ibuild/arcilator -I"$(ARCILATOR_DIR)" \
+	$(CXX) $(CXXFLAGS) -DUSE_ARCILATOR $(WRAP_CPPFLAG) -Ibuild/arcilator -I"$(ARCILATOR_DIR)" \
 	  sim/main.cpp build/arcilator/model.o -o $@
 
-# Verilator: compile e203_cpu_top directly against the unified C++ harness.
+# Verilator: compile TOP directly against the unified C++ harness.
 verilator: build/verilator/obj/sim
-build/verilator/obj/Ve203_cpu_top.mk: build/rtl/.stamp sim/main.cpp
+build/verilator/obj/V$(TOP).mk: build/rtl/.stamp sim/main.cpp $(if $(filter e203_sim,$(TOP)),sim/e203_sim.v)
 	rm -rf build/verilator/obj
 	mkdir -p build/verilator
 	"$(VERILATOR)" --cc --exe --top-module $(TOP) -Wno-fatal --timescale 1ns/10ps \
 	  $(if $(filter 1,$(WAVE)),--trace) $(DEFINES) $(INCLUDE) $(VERILATOR_FLAGS) \
 	  -Mdir $(ROOT)/build/verilator/obj -o sim $(RTL) $(ROOT)/sim/main.cpp
 	"$(VERILATOR)" --version > build/verilator/version.txt
-build/verilator/obj/sim: build/verilator/obj/Ve203_cpu_top.mk sim/main.cpp
-	$(MAKE) -C build/verilator/obj -f Ve203_cpu_top.mk -j$(JOBS) \
+build/verilator/obj/sim: build/verilator/obj/V$(TOP).mk sim/main.cpp
+	$(MAKE) -C build/verilator/obj -f V$(TOP).mk -j$(JOBS) \
 	  CXX="$(CXX)" LINK="$(CXX)" AR="$(AR)" OPT_FAST=-O2 OPT_SLOW=-O2 OPT_GLOBAL=-O2 \
-	  USER_CPPFLAGS="$(CXXFLAGS) -DUSE_VERILATOR"
+	  USER_CPPFLAGS="$(CXXFLAGS) -DUSE_VERILATOR $(WRAP_CPPFLAG)"
 
 # Icarus Verilog: compile e203_cpu_top with the Verilog testbench.
 iverilog: build/iverilog/sim.vvp
 build/iverilog/sim.vvp: build/rtl/.stamp sim/tb.v
 	mkdir -p build/iverilog
-	"$(IVERILOG)" -g2012 $(DEFINES) $(INCLUDE) -s tb_top -o $@ $(RTL) sim/tb.v
+	"$(IVERILOG)" -g2012 $(DEFINES) $(INCLUDE) -s tb_top -o $@ $(RTL_BASE) sim/tb.v
 	"$(IVERILOG)" -V > build/iverilog/version.txt 2>&1
 
 ifeq ($(SIM),all)
 compile: arcilator verilator iverilog
 smoke: compile
-	@$(MAKE) smoke SIM=arcilator SMOKE=$(SMOKE) WAVE=$(WAVE)
-	@$(MAKE) smoke SIM=verilator SMOKE=$(SMOKE) WAVE=$(WAVE)
-	@$(MAKE) smoke SIM=iverilog SMOKE=$(SMOKE) WAVE=$(WAVE)
+	@$(MAKE) smoke SIM=arcilator TOP=$(TOP) SMOKE=$(SMOKE) WAVE=$(WAVE)
+	@$(MAKE) smoke SIM=verilator TOP=$(TOP) SMOKE=$(SMOKE) WAVE=$(WAVE)
+	@$(MAKE) smoke SIM=iverilog TOP=$(TOP) SMOKE=$(SMOKE) WAVE=$(WAVE)
 bench: compile
-	@$(MAKE) bench SIM=arcilator SIZE=$(SIZE) REPEATS=$(REPEATS)
-	@$(MAKE) bench SIM=verilator SIZE=$(SIZE) REPEATS=$(REPEATS)
-	@$(MAKE) bench SIM=iverilog SIZE=$(SIZE) REPEATS=$(REPEATS)
+	@$(MAKE) bench SIM=arcilator TOP=$(TOP) SIZE=$(SIZE) REPEATS=$(REPEATS)
+	@$(MAKE) bench SIM=verilator TOP=$(TOP) SIZE=$(SIZE) REPEATS=$(REPEATS)
+	@$(MAKE) bench SIM=iverilog TOP=$(TOP) SIZE=$(SIZE) REPEATS=$(REPEATS)
 	@$(MAKE) compare
 else
 compile: $(EXE)

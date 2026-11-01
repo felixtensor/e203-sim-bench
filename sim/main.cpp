@@ -11,8 +11,13 @@
 #if defined(USE_ARCILATOR)
 #include "model.h"
 #elif defined(USE_VERILATOR)
+#if defined(USE_WRAPPER)
+#include "Ve203_sim.h"
+#include "Ve203_sim___024root.h"
+#else
 #include "Ve203_cpu_top.h"
 #include "Ve203_cpu_top___024root.h"
+#endif
 #include "verilated.h"
 #if VM_TRACE
 #include "verilated_vcd_c.h"
@@ -85,21 +90,31 @@ int main(int argc, char **argv) try {
   const std::vector<uint8_t> itcm_bytes = load_verilog_hex(opt.testcase);
 
 #if defined(USE_ARCILATOR)
-  e203_cpu_top model;
+#if defined(USE_WRAPPER)
+  using TopModel = e203_sim;
+  using TopLayout = e203_simLayout;
+  TopModel model;
+  auto &srams = model.view.internal.u_e203_cpu_top.u_e203_srams;
+#else
+  using TopModel = e203_cpu_top;
+  using TopLayout = e203_cpu_topLayout;
+  TopModel model;
+  auto &srams = model.view.internal.u_e203_srams;
+#endif
   auto &dut = model.view;
   auto itcm_word = [&](size_t i) -> uint64_t & {
-    return model.view.internal.u_e203_srams.u_e203_itcm_ram
-        .u_e203_itcm_gnrl_ram.u_sirv_sim_ram.mem_r.words[i]
+    return srams.u_e203_itcm_ram.u_e203_itcm_gnrl_ram.u_sirv_sim_ram.mem_r
+        .words[i]
         .data;
   };
   std::ofstream vcd_stream;
-  std::unique_ptr<ValueChangeDump<e203_cpu_topLayout>> vcd;
+  std::unique_ptr<ValueChangeDump<TopLayout>> vcd;
   if (!opt.vcd_path.empty()) {
     vcd_stream.open(opt.vcd_path);
     if (!vcd_stream)
       throw std::runtime_error("cannot open VCD file: " + opt.vcd_path);
-    vcd = std::make_unique<ValueChangeDump<e203_cpu_topLayout>>(
-        vcd_stream, &model.storage[0]);
+    vcd = std::make_unique<ValueChangeDump<TopLayout>>(vcd_stream,
+                                                       &model.storage[0]);
     vcd->writeHeader(false);
     vcd->writeDumpvars();
   }
@@ -109,11 +124,19 @@ int main(int argc, char **argv) try {
   };
 #elif defined(USE_VERILATOR)
   VerilatedContext ctx;
+#if defined(USE_WRAPPER)
+  Ve203_sim model(&ctx, "e203_sim");
+  auto &itcm_mem =
+      model.rootp
+          ->e203_sim__DOT__u_e203_cpu_top__DOT__u_e203_srams__DOT__u_e203_itcm_ram__DOT__u_e203_itcm_gnrl_ram__DOT__u_sirv_sim_ram__DOT__mem_r;
+#else
   Ve203_cpu_top model(&ctx, "e203_cpu_top");
+  auto &itcm_mem =
+      model.rootp
+          ->e203_cpu_top__DOT__u_e203_srams__DOT__u_e203_itcm_ram__DOT__u_e203_itcm_gnrl_ram__DOT__u_sirv_sim_ram__DOT__mem_r;
+#endif
   auto &dut = model;
-  auto itcm_word = [&](size_t i) -> uint64_t & {
-    return model.rootp->e203_cpu_top__DOT__u_e203_srams__DOT__u_e203_itcm_ram__DOT__u_e203_itcm_gnrl_ram__DOT__u_sirv_sim_ram__DOT__mem_r[i];
-  };
+  auto itcm_word = [&](size_t i) -> uint64_t & { return itcm_mem[i]; };
 #if VM_TRACE
   std::unique_ptr<VerilatedVcdC> vcd;
   if (!opt.vcd_path.empty()) {
@@ -128,7 +151,8 @@ int main(int argc, char **argv) try {
   };
 #else
   if (!opt.vcd_path.empty())
-    throw std::runtime_error("VCD needs a traced model: make -B verilator WAVE=1");
+    throw std::runtime_error(
+        "VCD needs a traced model: make -B verilator WAVE=1");
   auto dump_wave = [&](uint64_t) {};
 #endif
 #endif
@@ -150,6 +174,7 @@ int main(int argc, char **argv) try {
     return static_cast<uint16_t>(w >> ((byte_off & 6) * 8));
   };
 
+#if !defined(USE_WRAPPER)
   dut.pc_rtvec = kItcmBase;
   dut.ext2itcm_icb_rsp_ready = 1;
   dut.ext2dtcm_icb_rsp_ready = 1;
@@ -158,6 +183,7 @@ int main(int argc, char **argv) try {
   dut.plic_icb_cmd_ready = 1;
   dut.fio_icb_cmd_ready = 1;
   dut.mem_icb_cmd_ready = 1;
+#endif
 
   uint64_t sim_time = 0;
   dut.rst_n = 0;

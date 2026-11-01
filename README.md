@@ -38,6 +38,7 @@ make compare
 | Variable | Meaning |
 | --- | --- |
 | `SIM` | `arcilator` (default), `verilator`, `iverilog`, `all` |
+| `TOP` | `e203_cpu_top` (default, 108 ports) or `e203_sim` (17-port wrapper for native sims) |
 | `SIZE` | `small` = Dhrystone (default), `large` = CoreMark, `all` = both |
 | `SMOKE` | `default` = 8 tests, `all` = 67 |
 | `REPEATS` | Timed runs after one warm-up (`5`) |
@@ -46,21 +47,22 @@ make compare
 
 `WAVE=1` writes `<TAG>/<test>/wave.vcd` (Verilator needs `-B WAVE=1`). `LUT` (default `false`; arcilator default `true`) and `OPT_FLAGS` (default `-O2`; empty = `llc -O2` only) tune arcilator. `PYTHON` must provide `jinja2`; `VERILATOR`/`IVERILOG`/`VVP` override tool paths.
 
-Use `-B` when switching tool versions or build flags. Per-version runs need their own `TAG`:
+Use `-B` when switching tool versions, `TOP`, or build flags. Per-version runs need their own `TAG`:
 
 ```sh
 make -B bench SIM=verilator SIZE=all VERILATOR=/opt/verilator-5.028/bin/verilator TAG=verilator-5.028
 make -B bench SIM=arcilator SIZE=all LUT=true TAG=arcilator-lut-on CIRCT_BIN=...
+make -B bench SIM=arcilator TOP=e203_sim SIZE=all TAG=arcilator-wrap CIRCT_BIN=...
 ```
 
 ## Arcilator Note
 
-`circt-verilog` + `arcilator` cannot compile unmodified E203 RTL directly. Five fixes are required: strip DFF `#1` delays, `FPGA_SOURCE=1`, lower `sirv_sim_ram` byte masks to `arc.memory`, flatten HW modules before `arcilator`, and `--async-resets-as-sync`. `LUT`/`OPT_FLAGS` only affect speed. Details: [docs/workarounds.md](docs/workarounds.md).
+`circt-verilog` + `arcilator` cannot compile unmodified E203 RTL directly. Five fixes are required: strip DFF `#1` delays, `FPGA_SOURCE=1`, lower `sirv_sim_ram` byte masks to `arc.memory`, flatten HW modules before `arcilator`, and `--async-resets-as-sync`. `TOP=e203_sim`, `LUT`, and `OPT_FLAGS` only affect speed. Details: [docs/workarounds.md](docs/workarounds.md).
 
 ## Layout
 
 - `Makefile` — build and benchmark targets
-- `sim/` — native harness (`main.cpp`) and Icarus testbench (`tb.v`)
+- `sim/` — native harness (`main.cpp`), tie-off wrapper (`e203_sim.v`), and Icarus testbench (`tb.v`)
 - `scripts/` — test/bench runner, median table, RAM rewrite
 - `patches/` — DFF delay removal
 - `docs/` — environment setup, results and arcilator workarounds
