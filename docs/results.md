@@ -1,6 +1,6 @@
 # Results
 
-All timing numbers come from `make bench`; correctness numbers come from `make smoke` and `make bench`. Every run uses the same patched E203 RTL (see [workarounds.md](workarounds.md)) and official `.verilog` images, and is checked for `PASS=1` and an exact cycle count under `build/results/<TAG>/`.
+The throughput tables and figures below retain the measurements made before the harness replacement, pending remeasurement. The current flow uses upstream `tb_top` and the complete SoC; the [Reproduce](#reproduce) commands use that flow. Benchmark-reported CPU scores and the current cycle regression are shown below.
 
 ## Environment
 
@@ -17,13 +17,23 @@ Native harnesses are compiled single-threaded with `-O2 -std=c++17`. Arcilator u
 
 ## Performance Summary
 
+Dhrystone / CoreMark scores from the current `tb_top` runs:
+
+| Simulator | Dhrystone (DMIPS/MHz) | CoreMark/MHz |
+| --- | ---: | ---: |
+| arcilator | 1.249510 | 2.148844 |
+| Verilator 5.052 | 1.249510 | 2.148844 |
+| Icarus 13.0 | 1.249510 | 2.148844 |
+
+The figures and throughput tables retain the earlier measurements until they are regenerated from new timing runs.
+
 ![Native simulation throughput](figures/native-throughput.png)
 
 ![Icarus Verilog throughput](figures/icarus-throughput.png)
 
 ## Throughput (simulated cycles per host second, higher is better)
 
-Workload lengths: Dhrystone = `166,667` cycles; CoreMark = `1,069,745` cycles.
+Workload lengths for the retained measurements: Dhrystone = `166,667` cycles; CoreMark = `1,069,745` cycles.
 
 ### Default Top (`TOP=e203_cpu_top`, 108 ports)
 
@@ -39,9 +49,9 @@ Workload lengths: Dhrystone = `166,667` cycles; CoreMark = `1,069,745` cycles.
 
 ### Static Tie-Off Wrapper (`TOP=e203_sim`, 17 ports)
 
-[`sim/e203_sim.v`](../sim/e203_sim.v) ties off the 91 unused debug, interrupt, external-TCM, and unused-ICB pins in Verilog, exposing only the 17 active harness pins:
+The `e203_sim` configuration used for these measurements ties off the 91 unused debug, interrupt, external-TCM, and unused-ICB pins in Verilog, exposing only the 17 active harness pins:
 
-| Simulator (`TOP=e203_sim`) | Dhrystone (M1 Pro) | CoreMark (M1 Pro) | vs `e203_cpu_top` | Dhrystone (7800X3D) | CoreMark (7800X3D) | vs `e203_cpu_top` |
+| Simulator (`TOP=e203_sim`) | Dhrystone (M1 Pro) | CoreMark (M1 Pro) | CoreMark vs `e203_cpu_top` | Dhrystone (7800X3D) | CoreMark (7800X3D) | CoreMark vs `e203_cpu_top` |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | Verilator 5.052 | **3.20 M** (0.052 s) | **3.27 M** (0.327 s) | +42% | 2.41 M (0.069 s) | 2.44 M (0.438 s) | +34% |
 | Verilator 5.028 | 3.05 M (0.055 s) | 3.17 M (0.338 s) | +101% | **2.43 M** (0.069 s) | **2.57 M** (0.417 s) | +128% |
@@ -64,23 +74,16 @@ These results cover one core, two hosts, and fixed flags; they are not a general
 
 ## Correctness
 
-All 67 official RV32IMAC ISA tests (`rv32{ui,um,ua,uc,mi}-p-*`), Dhrystone, and CoreMark pass on arcilator, Verilator, and Icarus 13.0 with identical cycle counts on both hosts (`make smoke SIM=all SMOKE=all`, e.g., `rv32ui-p-add` = 17,995 and `rv32uc-p-rvc` = 17,728). Both `TOP=e203_cpu_top` and `TOP=e203_sim` produce identical cycle counts and outputs. This establishes observed agreement on these images, not formal equivalence.
+With `tb_top`, all 67 RV32IMAC ISA images, Dhrystone, and CoreMark pass on arcilator, Verilator 5.052, and Icarus 13.0 on the local M1 Pro with identical cycle counts (e.g., `rv32ui-p-add` = 23,424; `rv32uc-p-rvc` = 23,157; Dhrystone = 184,228; CoreMark = 1,081,994). The eight default native VCDs match on all 13 observations (`make compare-vcd`). This establishes observed agreement on these images, not formal equivalence.
 
 ## Reproduce
 
 ```sh
-# Default top (TOP=e203_cpu_top)
+# Current top: tb_top (complete SoC)
 make bench SIM=all SIZE=all CIRCT_BIN=/path/to/circt/build/bin
 make -B bench SIM=verilator SIZE=all VERILATOR=/path/to/5.028/bin/verilator TAG=verilator-5.028
 make -B bench SIM=arcilator SIZE=all LUT=true TAG=arcilator-lut-on CIRCT_BIN=...
 make -B bench SIM=arcilator SIZE=all OPT_FLAGS= TAG=arcilator-no-opt CIRCT_BIN=...
-
-# Static tie-off wrapper (TOP=e203_sim)
-make -B bench SIM=arcilator TOP=e203_sim SIZE=all TAG=arcilator-wrap CIRCT_BIN=...
-make -B bench SIM=arcilator TOP=e203_sim SIZE=all OPT_FLAGS= TAG=arcilator-wrap-no-opt CIRCT_BIN=...
-make -B bench SIM=arcilator TOP=e203_sim SIZE=all LUT=true TAG=arcilator-wrap-lut-on CIRCT_BIN=...
-make -B bench SIM=verilator TOP=e203_sim SIZE=all VERILATOR=/path/to/5.052/bin/verilator TAG=verilator-5.052-wrap
-make -B bench SIM=verilator TOP=e203_sim SIZE=all VERILATOR=/path/to/5.028/bin/verilator TAG=verilator-5.028-wrap
 
 # Icarus (3 Dhrystone and 1 CoreMark timed runs)
 make -B bench SIM=iverilog SIZE=small REPEATS=3 TAG=iverilog-12.0 \
@@ -91,4 +94,4 @@ make bench SIM=iverilog SIZE=large REPEATS=1 TAG=iverilog
 make compare
 ```
 
-Per-run logs, commands, timers, and versions are saved under `build/results/<TAG>/`. Medians are computed by [`scripts/compare.awk`](../scripts/compare.awk).
+Per-run logs, commands, timers, and versions are saved under `build/results/<TAG>/`. Medians are computed by [`scripts/compare.awk`](../scripts/compare.awk). In the current driver the native timer includes startup reset; Icarus wall time also includes process startup and loading.

@@ -27,20 +27,26 @@ resolve_case() {
   local name=$1
   case "$name" in
     dhrystone|dhrystone4sim)
-      echo "dhrystone $fpga_dir/dhrystone4sim/dhrystone4sim.verilog 166667" ;;
+      echo "dhrystone $fpga_dir/dhrystone4sim/dhrystone4sim.verilog 184228" ;;
     coremark|coremark4sim)
-      echo "coremark $fpga_dir/coremark4sim/coremark4sim.verilog 1069745" ;;
-    rv32ui-p-add)      echo "$name $isa_dir/$name.verilog 17995" ;;
-    rv32ui-p-lw)       echo "$name $isa_dir/$name.verilog 17817" ;;
-    rv32ui-p-sw)       echo "$name $isa_dir/$name.verilog 18094" ;;
-    rv32um-p-mul)      echo "$name $isa_dir/$name.verilog 18809" ;;
-    rv32um-p-div)      echo "$name $isa_dir/$name.verilog 17804" ;;
-    rv32ua-p-amoadd_w) echo "$name $isa_dir/$name.verilog 17589" ;;
-    rv32uc-p-rvc)      echo "$name $isa_dir/$name.verilog 17728" ;;
-    rv32mi-p-csr)      echo "$name $isa_dir/$name.verilog 17603" ;;
+      echo "coremark $fpga_dir/coremark4sim/coremark4sim.verilog 1081994" ;;
+    rv32ui-p-add)      echo "$name $isa_dir/$name.verilog 23424" ;;
+    rv32ui-p-lw)       echo "$name $isa_dir/$name.verilog 23246" ;;
+    rv32ui-p-sw)       echo "$name $isa_dir/$name.verilog 23523" ;;
+    rv32um-p-mul)      echo "$name $isa_dir/$name.verilog 24238" ;;
+    rv32um-p-div)      echo "$name $isa_dir/$name.verilog 23233" ;;
+    rv32ua-p-amoadd_w) echo "$name $isa_dir/$name.verilog 23018" ;;
+    rv32uc-p-rvc)      echo "$name $isa_dir/$name.verilog 23157" ;;
+    rv32mi-p-csr)      echo "$name $isa_dir/$name.verilog 23032" ;;
     *)
       if [[ -f "$name" ]]; then
-        echo "$(basename "$name" .verilog) $name -"
+        local image_name
+        image_name=$(basename "$name" .verilog)
+        case "$image_name" in
+          dhrystone4sim) echo "dhrystone $name 184228" ;;
+          coremark4sim)  echo "coremark $name 1081994" ;;
+          *)             echo "$image_name $name -" ;;
+        esac
       elif [[ -f "$isa_dir/$name.verilog" ]]; then
         echo "$name $isa_dir/$name.verilog -"
       else
@@ -94,12 +100,14 @@ for entry in "${cases[@]}"; do
   vcd="$out/$test/wave.vcd"
 
   if [[ "$sim" == iverilog ]]; then
-    cmd=("${VVP:-vvp}" "$exe" "+TESTCASE=$verilog" +MAXCYCLES=20000000)
+    cmd=("${VVP:-vvp}" "$exe" "+TESTCASE=${verilog%.verilog}" +MAXCYCLES=20000000)
     [[ "$mode" != run ]] && cmd+=(+QUIET=1)
+    [[ "$test" == dhrystone || "$test" == coremark ]] && cmd+=(+BENCHMARK=1)
     [[ "$wave" == 1 ]] && cmd+=("+VCD=$vcd")
   else
     cmd=("$exe" "$verilog" 20000000)
     [[ "$mode" != run ]] && cmd+=(--quiet)
+    [[ "$test" == dhrystone || "$test" == coremark ]] && cmd+=(--benchmark)
     [[ "$wave" == 1 ]] && cmd+=(--vcd "$vcd")
   fi
 
@@ -116,13 +124,14 @@ for entry in "${cases[@]}"; do
   for ((run=0; run<=last; run++)); do
     log="$out/$test/run-$run"
     if { time -p "${cmd[@]}"; } > "$log.log" 2> "$log.time"; then rc=0; else rc=$?; fi
-    summary=$(grep -E '^PASS=' "$log.log" || true)
+    summary=$(tr -d '\r' < "$log.log" | grep -E '^PASS=' || true)
     cycles=$(sed -nE 's/^PASS=1 cycles=([0-9]+).*/\1/p' <<< "$summary")
     if [[ "$rc" != 0 || -z "$cycles" || ( "$expected_cycles" != "-" && "$cycles" != "$expected_cycles" ) ]]; then
       cat "$log.log" "$log.time" >&2
       echo "FAILED $test (rc=$rc, expected cycles=$expected_cycles, got: ${summary:-none})" >&2
       exit 1
     fi
+    [[ "$expected_cycles" == "-" ]] && expected_cycles=$cycles
     if [[ "$wave" == 1 && -n "$vcd_reference" && "$sim" != iverilog ]]; then
       "$python" scripts/compare-vcd.py "$vcd_reference" "$vcd"
     fi

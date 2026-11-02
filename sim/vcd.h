@@ -6,25 +6,21 @@
 #include <stdexcept>
 #include <string>
 
-// 17 active harness pins exposed by e203_sim and shared by e203_cpu_top.
-#define E203_VCD_SIGNALS(X)                                                    \
-  X(clk, 1)                                                                    \
-  X(rst_n, 1)                                                                  \
-  X(inspect_pc, 32)                                                            \
-  X(ppi_icb_cmd_valid, 1)                                                      \
-  X(ppi_icb_cmd_addr, 32)                                                      \
-  X(ppi_icb_cmd_read, 1)                                                       \
-  X(ppi_icb_cmd_wdata, 32)                                                     \
-  X(ppi_icb_rsp_valid, 1)                                                      \
-  X(clint_icb_cmd_valid, 1)                                                    \
-  X(clint_icb_rsp_valid, 1)                                                    \
-  X(clint_icb_rsp_rdata, 32)                                                   \
-  X(plic_icb_cmd_valid, 1)                                                     \
-  X(plic_icb_rsp_valid, 1)                                                     \
-  X(fio_icb_cmd_valid, 1)                                                      \
-  X(fio_icb_rsp_valid, 1)                                                      \
-  X(mem_icb_cmd_valid, 1)                                                      \
-  X(mem_icb_rsp_valid, 1)
+// Observations from the shared upstream testbench adapter.
+#define E203_VCD_SIGNALS(X) \
+  X(clk, 1) \
+  X(lfextclk, 1) \
+  X(rst_n, 1) \
+  X(result_pc, 32) \
+  X(result_pc_valid, 1) \
+  X(result_x3, 32) \
+  X(result_cycles, 32) \
+  X(result_hits, 32) \
+  X(result_end_cycle, 32) \
+  X(result_benchmark_done, 1) \
+  X(result_benchmark_pass, 1) \
+  X(result_uart_valid, 1) \
+  X(result_uart_data, 8)
 
 class PortableVcd {
 public:
@@ -35,7 +31,7 @@ public:
     if (!out_)
       throw std::runtime_error("cannot open VCD file: " + path);
     enabled_ = true;
-    out_ << "$timescale 1ns $end\n$scope module e203_sim $end\n";
+    out_ << "$timescale 1ns $end\n$scope module tb_top $end\n";
     char id = 'a';
 #define E203_VCD_DECL(name, width)                                             \
   out_ << "$var wire " << (width) << ' ' << id++ << ' ' << #name << " $end\n";

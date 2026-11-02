@@ -1,253 +1,130 @@
+#include "vcd.h"
+#include <algorithm>
 #include <chrono>
 #include <cstdint>
 #include <cstdio>
 #include <fstream>
-#include <iostream>
 #include <stdexcept>
 #include <string>
-#include <vector>
-
-#include "vcd.h"
-
 #if defined(USE_ARCILATOR)
 #include "model.h"
 #elif defined(USE_VERILATOR)
-#if defined(USE_WRAPPER)
-#include "Ve203_sim.h"
-#include "Ve203_sim___024root.h"
-#else
-#include "Ve203_cpu_top.h"
-#include "Ve203_cpu_top___024root.h"
-#endif
+#include "Vtb_top.h"
+#include "Vtb_top___024root.h"
 #include "verilated.h"
-#else
-#error "Define USE_ARCILATOR or USE_VERILATOR"
 #endif
 
-namespace {
-
-constexpr uint32_t kItcmBase = 0x80000000u;
-constexpr uint32_t kItcmWords = 8192;
-constexpr uint32_t kItcmBytes = kItcmWords * 8;
-constexpr uint32_t kPcWriteTohost = 0x80000086u;
-constexpr uint32_t kUartTxAddr = 0x10013000u;
-
-struct Options {
-  std::string testcase;
-  uint64_t max_cycles = 20000000ull;
-  std::string vcd_path;
-  bool quiet = false;
-};
-
-Options parse_args(int argc, char **argv) {
-  if (argc < 2)
-    throw std::runtime_error(
-        "usage: sim <testcase.verilog> [max_cycles] [--vcd <file>] [--quiet]");
-  Options opt;
-  opt.testcase = argv[1];
-  bool have_max = false;
-  for (int i = 2; i < argc; ++i) {
-    std::string arg = argv[i];
-    if (arg == "--vcd" && i + 1 < argc) {
-      opt.vcd_path = argv[++i];
-    } else if (arg == "--quiet") {
-      opt.quiet = true;
-    } else if (!have_max && !arg.empty() && arg[0] != '-') {
-      opt.max_cycles = std::stoull(arg, nullptr, 0);
-      have_max = true;
-    } else {
-      throw std::runtime_error("unknown argument: " + arg);
-    }
-  }
-  return opt;
-}
-
-std::vector<uint8_t> load_verilog_hex(const std::string &path) {
-  std::ifstream in(path);
-  if (!in)
-    throw std::runtime_error("cannot open testcase: " + path);
-  std::vector<uint8_t> mem(kItcmBytes, 0);
-  std::string tok;
-  size_t addr = 0;
-  while (in >> tok) {
-    if (tok[0] == '@') {
-      addr = std::stoul(tok.substr(1), nullptr, 16);
-    } else {
-      if (addr >= mem.size())
-        throw std::runtime_error("program image exceeds 64 KB ITCM");
-      mem[addr++] = static_cast<uint8_t>(std::stoul(tok, nullptr, 16));
-    }
-  }
-  return mem;
-}
-
-} // namespace
+constexpr uint64_t kHfHalf = 2;
+constexpr uint64_t kLfHalf = 33;
+constexpr uint64_t kResetTime = 120;
+constexpr uint64_t kExitSettle = 10;
 
 int main(int argc, char **argv) try {
-  const Options opt = parse_args(argc, argv);
-  const std::vector<uint8_t> itcm_bytes = load_verilog_hex(opt.testcase);
-
+  if (argc < 2)
+    throw std::runtime_error("usage: sim <image.verilog> [max_cycles] "
+                             "[--quiet] [--benchmark] [--vcd file]");
+  uint64_t max_cycles = 20000000;
+  bool quiet = false, benchmark = false;
+  std::string wave;
+  for (int i = 2; i < argc; ++i) {
+    const std::string arg = argv[i];
+    if (arg == "--quiet")
+      quiet = true;
+    else if (arg == "--benchmark")
+      benchmark = true;
+    else if (arg == "--vcd" && i + 1 < argc)
+      wave = argv[++i];
+    else if (arg.size() && arg[0] != '-')
+      max_cycles = std::stoull(arg);
+    else
+      throw std::runtime_error("unknown argument: " + arg);
+  }
 #if defined(USE_ARCILATOR)
-#if defined(USE_WRAPPER)
-  using TopModel = e203_sim;
-  TopModel model;
-  auto &srams = model.view.internal.u_e203_cpu_top.u_e203_srams;
+  tb_top model;
+  auto &d = model.view;
+  auto &memory = d.internal.u_e203_soc_top.u_e203_subsys_top.u_e203_subsys_main
+                     .u_e203_cpu_top.u_e203_srams.u_e203_itcm_ram
+                     .u_e203_itcm_gnrl_ram.u_sirv_sim_ram.mem_r;
+  auto word = [&](size_t i) -> uint64_t & { return memory.words[i].data; };
 #else
-  using TopModel = e203_cpu_top;
-  TopModel model;
-  auto &srams = model.view.internal.u_e203_srams;
-#endif
-  auto &dut = model.view;
-  auto itcm_word = [&](size_t i) -> uint64_t & {
-    return srams.u_e203_itcm_ram.u_e203_itcm_gnrl_ram.u_sirv_sim_ram.mem_r
-        .words[i]
-        .data;
-  };
-#elif defined(USE_VERILATOR)
-  VerilatedContext ctx;
-#if defined(USE_WRAPPER)
-  Ve203_sim model(&ctx, "e203_sim");
-  auto &itcm_mem =
+  VerilatedContext context;
+  Vtb_top model(&context);
+  auto &d = model;
+  auto &memory =
       model.rootp
-          ->e203_sim__DOT__u_e203_cpu_top__DOT__u_e203_srams__DOT__u_e203_itcm_ram__DOT__u_e203_itcm_gnrl_ram__DOT__u_sirv_sim_ram__DOT__mem_r;
-#else
-  Ve203_cpu_top model(&ctx, "e203_cpu_top");
-  auto &itcm_mem =
-      model.rootp
-          ->e203_cpu_top__DOT__u_e203_srams__DOT__u_e203_itcm_ram__DOT__u_e203_itcm_gnrl_ram__DOT__u_sirv_sim_ram__DOT__mem_r;
+          ->tb_top__DOT__u_e203_soc_top__DOT__u_e203_subsys_top__DOT__u_e203_subsys_main__DOT__u_e203_cpu_top__DOT__u_e203_srams__DOT__u_e203_itcm_ram__DOT__u_e203_itcm_gnrl_ram__DOT__u_sirv_sim_ram__DOT__mem_r;
+  auto word = [&](size_t i) -> uint64_t & { return memory[i]; };
 #endif
-  auto &dut = model;
-  auto itcm_word = [&](size_t i) -> uint64_t & { return itcm_mem[i]; };
-#endif
-
-  PortableVcd vcd(opt.vcd_path);
-
-  // Pack bytes into 64-bit ITCM SRAM words matching ext/e203/tb/tb_top.v.
-  for (size_t i = 0; i < kItcmWords; ++i) {
-    uint64_t w = 0;
-    for (size_t b = 0; b < 8; ++b)
-      w |= static_cast<uint64_t>(itcm_bytes[i * 8 + b]) << (b * 8);
-    itcm_word(i) = w;
-  }
-
-  auto read_itcm_u32 = [&](uint32_t byte_off) -> uint32_t {
-    uint64_t w = itcm_word((byte_off >> 3) & (kItcmWords - 1));
-    return static_cast<uint32_t>(w >> ((byte_off & 4) * 8));
-  };
-  auto read_itcm_u16 = [&](uint32_t byte_off) -> uint16_t {
-    uint64_t w = itcm_word((byte_off >> 3) & (kItcmWords - 1));
-    return static_cast<uint16_t>(w >> ((byte_off & 6) * 8));
-  };
-
-#if !defined(USE_WRAPPER)
-  dut.pc_rtvec = kItcmBase;
-  dut.ext2itcm_icb_rsp_ready = 1;
-  dut.ext2dtcm_icb_rsp_ready = 1;
-  dut.ppi_icb_cmd_ready = 1;
-  dut.clint_icb_cmd_ready = 1;
-  dut.plic_icb_cmd_ready = 1;
-  dut.fio_icb_cmd_ready = 1;
-  dut.mem_icb_cmd_ready = 1;
-#endif
-
-  uint64_t sim_time = 0;
-  dut.rst_n = 0;
-  for (int i = 0; i < 8; ++i) {
-    dut.clk = 0;
-    model.eval();
-    vcd.sample(sim_time += 5, dut);
-    dut.clk = 1;
-    model.eval();
-    vcd.sample(sim_time += 5, dut);
-  }
-  dut.rst_n = 1;
-
-  uint32_t tohost_hits = 0;
-  uint64_t end_cycle = 0;
-  uint32_t prev_pc = 0xffffffffu;
-  uint32_t same_pc_hits = 0;
-  std::string uart_out;
-
-  const auto start_time = std::chrono::steady_clock::now();
-  uint64_t cycle = 0;
-  bool pass = false;
-  uint32_t x3 = 0;
-
-  for (; cycle < opt.max_cycles; ++cycle) {
-    dut.clk = 0;
-    model.eval();
-    vcd.sample(sim_time += 5, dut);
-
-    const uint32_t pc = dut.inspect_pc;
-    if (pc == kPcWriteTohost) {
-      if (tohost_hits == 0)
-        end_cycle = cycle;
-      if (++tohost_hits == 8) {
-        const uint32_t tohost_off = ((read_itcm_u32(0x8c) >> 12) & 0xffu) << 12;
-        x3 = read_itcm_u32(tohost_off);
-        pass = (x3 == 1);
-        ++cycle;
-        break;
-      }
+  std::ifstream input(argv[1]);
+  if (!input)
+    throw std::runtime_error("cannot open image");
+  for (size_t i = 0; i < 8192; ++i)
+    word(i) = 0;
+  size_t address = 0;
+  std::string token;
+  while (input >> token) {
+    if (token[0] == '@')
+      address = std::stoul(token.substr(1), nullptr, 16);
+    else {
+      if (address >= 65536)
+        throw std::runtime_error("image exceeds ITCM");
+      word(address / 8) |= uint64_t(std::stoul(token, nullptr, 16))
+                           << ((address % 8) * 8);
+      ++address;
     }
-    if (pc == prev_pc) {
-      if (++same_pc_hits >= 16 && pc >= kItcmBase &&
-          pc < kItcmBase + kItcmBytes) {
-        if (read_itcm_u16(pc - kItcmBase) == 0xa001u) {
-          end_cycle = cycle;
-          pass = (uart_out.find("Program has exited with code:0x00000000") !=
-                  std::string::npos);
-          x3 = pass ? 1 : 0;
-          ++cycle;
-          break;
-        }
-      }
-    } else {
-      prev_pc = pc;
-      same_pc_hits = 0;
-    }
-
-    const uint8_t ppi_cmd = dut.ppi_icb_cmd_valid;
-    const uint8_t ppi_read = dut.ppi_icb_cmd_read;
-    const uint32_t ppi_addr = dut.ppi_icb_cmd_addr;
-    const uint32_t ppi_wdata = dut.ppi_icb_cmd_wdata;
-    const uint8_t clint_cmd = dut.clint_icb_cmd_valid;
-    const uint8_t plic_cmd = dut.plic_icb_cmd_valid;
-    const uint8_t fio_cmd = dut.fio_icb_cmd_valid;
-    const uint8_t mem_cmd = dut.mem_icb_cmd_valid;
-
-    if (ppi_cmd && !ppi_read && ppi_addr == kUartTxAddr)
-      uart_out.push_back(static_cast<char>(ppi_wdata & 0xffu));
-
-    dut.clk = 1;
-    model.eval();
-    vcd.sample(sim_time += 5, dut);
-
-    dut.ppi_icb_rsp_valid = ppi_cmd;
-    dut.clint_icb_rsp_valid = clint_cmd;
-    dut.clint_icb_rsp_rdata = static_cast<uint32_t>(cycle);
-    dut.plic_icb_rsp_valid = plic_cmd;
-    dut.fio_icb_rsp_valid = fio_cmd;
-    dut.mem_icb_rsp_valid = mem_cmd;
   }
-
+  PortableVcd vcd(wave);
+  d.benchmark_mode = benchmark;
+  d.clk = d.lfextclk = d.rst_n = 0;
+  model.eval();
+  vcd.sample(0, d);
+  uint64_t time = 0, next_hf = kHfHalf, next_lf = kLfHalf;
+  uint64_t finish_time = 0;
+  const uint64_t limit = kResetTime + max_cycles * 2 * kHfHalf;
+  const auto start = std::chrono::steady_clock::now();
+  while (time < limit) {
+    uint64_t next = std::min(next_hf, next_lf);
+    if (time < kResetTime)
+      next = std::min(next, kResetTime);
+    if (finish_time)
+      next = std::min(next, finish_time);
+    time = std::min(next, limit);
+    const bool rising = time == next_hf && !d.clk;
+    if (rising && d.rst_n && d.result_uart_valid && !quiet)
+      std::putchar(d.result_uart_data);
+    if (time == next_hf) {
+      d.clk ^= 1;
+      next_hf += kHfHalf;
+    }
+    if (time == next_lf) {
+      d.lfextclk ^= 1;
+      next_lf += kLfHalf;
+    }
+    d.rst_n = time >= kResetTime;
+    model.eval();
+    vcd.sample(time, d);
+    if (!finish_time &&
+        (benchmark ? d.result_benchmark_done : d.result_hits >= 8))
+      finish_time = time + kExitSettle;
+    if (finish_time && time >= finish_time)
+      break;
+  }
+  const bool completed = finish_time && time >= finish_time;
+  const bool pass =
+      completed && (benchmark ? d.result_benchmark_pass : d.result_x3 == 1);
   vcd.close();
 #if defined(USE_VERILATOR)
   model.final();
 #endif
-
-  const double sim_s = std::chrono::duration<double>(
-                           std::chrono::steady_clock::now() - start_time)
-                           .count();
-  if (!opt.quiet && !uart_out.empty())
-    std::cout << uart_out;
-
-  std::fprintf(stderr, "HARNESS sim_s=%.9f\n", sim_s);
-  std::printf("PASS=%d cycles=%llu end_cycle=%llu x3=%u pc=0x%08x\n",
-              pass ? 1 : 0, static_cast<unsigned long long>(cycle),
-              static_cast<unsigned long long>(end_cycle), x3, dut.inspect_pc);
+  const double seconds =
+      std::chrono::duration<double>(std::chrono::steady_clock::now() - start)
+          .count();
+  std::fprintf(stderr, "HARNESS sim_s=%.9f\n", seconds);
+  std::printf("\nPASS=%d cycles=%u end_cycle=%u x3=%u pc=0x%08x\n", pass,
+              unsigned(d.result_cycles), unsigned(d.result_end_cycle),
+              unsigned(d.result_x3), unsigned(d.result_pc));
   return pass ? 0 : 1;
-} catch (const std::exception &e) {
-  std::fprintf(stderr, "ERROR: %s\n", e.what());
+} catch (const std::exception &error) {
+  std::fprintf(stderr, "ERROR: %s\n", error.what());
   return 2;
 }
