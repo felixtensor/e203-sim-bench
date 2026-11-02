@@ -15,6 +15,12 @@ All timing numbers come from `make bench`; correctness numbers come from `make s
 
 Native harnesses are compiled single-threaded with `-O2 -std=c++17`. Arcilator uses `LUT=false`, `opt -O2`, and `llc -O2` (`without opt -O2` sets `OPT_FLAGS=`); Verilator uses `OPT_FAST=OPT_SLOW=OPT_GLOBAL=-O2`.
 
+## Performance Summary
+
+![Native simulation throughput](figures/native-throughput.png)
+
+![Icarus Verilog throughput](figures/icarus-throughput.png)
+
 ## Throughput (simulated cycles per host second, higher is better)
 
 Workload lengths: Dhrystone = `166,667` cycles; CoreMark = `1,069,745` cycles.
@@ -44,7 +50,7 @@ Workload lengths: Dhrystone = `166,667` cycles; CoreMark = `1,069,745` cycles.
 | arcilator, `LUT=true` | 1.69 M (0.099 s) | 1.70 M (0.629 s) | +92% | 1.54 M (0.108 s) | 1.58 M (0.679 s) | +94% |
 
 - Native models report in-process loop time (`HARNESS sim_s`), excluding process startup, image loading, and reset; Icarus reports `vvp` wall time.
-- Median of 5 timed runs after 1 warm-up for native models (Icarus: 3 for Dhrystone, 1 for CoreMark). No VCD is written during benchmarks.
+- Median of 5 timed runs after 1 warm-up for native models (Icarus: 3 for Dhrystone, 1 for CoreMark).
 - Cycle counts are post-reset harness cycles until the exit signature (including startup, UART output, and exit spin). The official Dhrystone image runs 2 loops (`User_Cycle=911` of 166,667 cycles); CoreMark is dominated by the benchmark loop (`Total ticks=930,733` of 1,069,745 cycles).
 - Benchmark self-reports: Dhrystone `1.249510 DMIPS/MHz`, CoreMark `2.148844 CoreMark/MHz` (identical across all simulators, both tops, and both hosts).
 
