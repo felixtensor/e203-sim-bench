@@ -30,8 +30,9 @@ make compare
 | `make doctor [SIM=<sim>|all]` | verify toolchain |
 | `make smoke SIM=all SMOKE=all` | all 67 RV32IMAC ISA tests (slow on Icarus) |
 | `make bench SIM=arcilator SIZE=all` | Dhrystone + CoreMark |
-| `make run SIM=iverilog TEST=coremark WAVE=1` | one test, optional VCD |
+| `make run SIM=verilator TEST=rv32ui-p-add WAVE=1` | one test, optional VCD |
 | `make compare` | median table from `build/results/*/measurements.tsv` |
+| `make compare-vcd REFERENCE=... CANDIDATE=...` | compare VCD files or result directories |
 | `make repro CIRCT_BIN=...` | standalone CIRCT/arcilator reproducers |
 
 `SIZE=all SIM=all` with the default five runs takes ~45 min, mostly in Icarus; use `REPEATS=1` for a quick pass.
@@ -49,7 +50,14 @@ make compare
 | `CIRCT_BIN` | CIRCT `build/bin` (tools and arcilator headers) |
 | `PYTHON` | Python 3 with `jinja2`; defaults to `.tools/venv/bin/python3` |
 
-`WAVE=1` writes `<TAG>/<test>/wave.vcd` (Verilator needs `-B WAVE=1`). `LUT` (default `false`; arcilator default `true`) and `OPT_FLAGS` (default `-O2`; empty = `llc -O2` only) tune arcilator. `VERILATOR`/`IVERILOG`/`VVP` override tool paths.
+`WAVE=1` writes `build/results/<TAG>/<test>/wave.vcd` (17 active harness signals for native models; RTL hierarchy for Icarus). Pass `VCD_REFERENCE=<dir|file>` during `make run` or `make smoke` (or run `make compare-vcd`) to verify native waveform equivalence:
+
+```sh
+make smoke SIM=arcilator WAVE=1 TAG=vcd-arcilator CIRCT_BIN=/path/to/circt/build/bin
+make smoke SIM=verilator TAG=vcd-verilator VCD_REFERENCE=build/results/vcd-arcilator
+```
+
+`LUT` (default `false`; arcilator default `true`) and `OPT_FLAGS` (default `-O2`; empty = `llc -O2` only) tune arcilator. `VERILATOR`/`IVERILOG`/`VVP` override tool paths.
 
 Use `-B` when switching tool versions, `TOP`, or build flags. Per-version runs need their own `TAG`:
 
@@ -66,8 +74,8 @@ make -B bench SIM=arcilator TOP=e203_sim SIZE=all TAG=arcilator-wrap CIRCT_BIN=.
 ## Layout
 
 - `Makefile` — build and benchmark targets
-- `sim/` — native harness (`main.cpp`), tie-off wrapper (`e203_sim.v`), and Icarus testbench (`tb.v`)
-- `scripts/` — test/bench runner, median table, RAM rewrite, Python/env setup
+- `sim/` — native harness (`main.cpp`, `vcd.h`), tie-off wrapper (`e203_sim.v`), and Icarus testbench (`tb.v`)
+- `scripts/` — test/bench runner, VCD/metric comparison, RAM rewrite, Python/env setup
 - `patches/` — RTL and CIRCT patches
 - `docs/` — environment setup, results and arcilator workarounds
 - `repro/` — standalone CIRCT/arcilator reproducers

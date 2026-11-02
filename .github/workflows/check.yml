@@ -11,4 +11,5 @@ jobs:
       - run: for script in scripts/*.sh; do bash -n "$script"; done
       - run: make setup
       - run: make smoke SIM=verilator WAVE=1
+      - run: make -B smoke SIM=verilator TOP=e203_sim TAG=verilator-wrap VCD_REFERENCE=build/results/verilator
       - run: make smoke SIM=iverilog

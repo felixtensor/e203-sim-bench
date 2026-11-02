@@ -3,10 +3,11 @@
 #include <cstdio>
 #include <fstream>
 #include <iostream>
-#include <memory>
 #include <stdexcept>
 #include <string>
 #include <vector>
+
+#include "vcd.h"
 
 #if defined(USE_ARCILATOR)
 #include "model.h"
@@ -19,9 +20,6 @@
 #include "Ve203_cpu_top___024root.h"
 #endif
 #include "verilated.h"
-#if VM_TRACE
-#include "verilated_vcd_c.h"
-#endif
 #else
 #error "Define USE_ARCILATOR or USE_VERILATOR"
 #endif
@@ -92,12 +90,10 @@ int main(int argc, char **argv) try {
 #if defined(USE_ARCILATOR)
 #if defined(USE_WRAPPER)
   using TopModel = e203_sim;
-  using TopLayout = e203_simLayout;
   TopModel model;
   auto &srams = model.view.internal.u_e203_cpu_top.u_e203_srams;
 #else
   using TopModel = e203_cpu_top;
-  using TopLayout = e203_cpu_topLayout;
   TopModel model;
   auto &srams = model.view.internal.u_e203_srams;
 #endif
@@ -106,21 +102,6 @@ int main(int argc, char **argv) try {
     return srams.u_e203_itcm_ram.u_e203_itcm_gnrl_ram.u_sirv_sim_ram.mem_r
         .words[i]
         .data;
-  };
-  std::ofstream vcd_stream;
-  std::unique_ptr<ValueChangeDump<TopLayout>> vcd;
-  if (!opt.vcd_path.empty()) {
-    vcd_stream.open(opt.vcd_path);
-    if (!vcd_stream)
-      throw std::runtime_error("cannot open VCD file: " + opt.vcd_path);
-    vcd = std::make_unique<ValueChangeDump<TopLayout>>(vcd_stream,
-                                                       &model.storage[0]);
-    vcd->writeHeader(false);
-    vcd->writeDumpvars();
-  }
-  auto dump_wave = [&](uint64_t) {
-    if (vcd)
-      vcd->writeTimestep(5);
   };
 #elif defined(USE_VERILATOR)
   VerilatedContext ctx;
@@ -137,25 +118,9 @@ int main(int argc, char **argv) try {
 #endif
   auto &dut = model;
   auto itcm_word = [&](size_t i) -> uint64_t & { return itcm_mem[i]; };
-#if VM_TRACE
-  std::unique_ptr<VerilatedVcdC> vcd;
-  if (!opt.vcd_path.empty()) {
-    ctx.traceEverOn(true);
-    vcd = std::make_unique<VerilatedVcdC>();
-    model.trace(vcd.get(), 1);
-    vcd->open(opt.vcd_path.c_str());
-  }
-  auto dump_wave = [&](uint64_t sim_time) {
-    if (vcd)
-      vcd->dump(sim_time);
-  };
-#else
-  if (!opt.vcd_path.empty())
-    throw std::runtime_error(
-        "VCD needs a traced model: make -B verilator WAVE=1");
-  auto dump_wave = [&](uint64_t) {};
 #endif
-#endif
+
+  PortableVcd vcd(opt.vcd_path);
 
   // Pack bytes into 64-bit ITCM SRAM words matching ext/e203/tb/tb_top.v.
   for (size_t i = 0; i < kItcmWords; ++i) {
@@ -190,10 +155,10 @@ int main(int argc, char **argv) try {
   for (int i = 0; i < 8; ++i) {
     dut.clk = 0;
     model.eval();
-    dump_wave(sim_time += 5);
+    vcd.sample(sim_time += 5, dut);
     dut.clk = 1;
     model.eval();
-    dump_wave(sim_time += 5);
+    vcd.sample(sim_time += 5, dut);
   }
   dut.rst_n = 1;
 
@@ -211,7 +176,7 @@ int main(int argc, char **argv) try {
   for (; cycle < opt.max_cycles; ++cycle) {
     dut.clk = 0;
     model.eval();
-    dump_wave(sim_time += 5);
+    vcd.sample(sim_time += 5, dut);
 
     const uint32_t pc = dut.inspect_pc;
     if (pc == kPcWriteTohost) {
@@ -256,7 +221,7 @@ int main(int argc, char **argv) try {
 
     dut.clk = 1;
     model.eval();
-    dump_wave(sim_time += 5);
+    vcd.sample(sim_time += 5, dut);
 
     dut.ppi_icb_rsp_valid = ppi_cmd;
     dut.clint_icb_rsp_valid = clint_cmd;
@@ -266,11 +231,8 @@ int main(int argc, char **argv) try {
     dut.mem_icb_rsp_valid = mem_cmd;
   }
 
+  vcd.close();
 #if defined(USE_VERILATOR)
-#if VM_TRACE
-  if (vcd)
-    vcd->close();
-#endif
   model.final();
 #endif
 

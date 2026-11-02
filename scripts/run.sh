@@ -7,7 +7,9 @@ mode=$2
 selected=${3:-rv32ui-p-add}
 tag=${TAG:-$sim}
 exe=${SIM_EXE:?set SIM_EXE to the compiled simulator}
-wave=${WAVE:-0}
+vcd_reference=${VCD_REFERENCE:-}
+wave=${WAVE:-$([[ -n "$vcd_reference" ]] && echo 1 || echo 0)}
+python=${PYTHON:-python3}
 smoke_set=${SMOKE:-default}
 size=${SIZE:-small}
 repeats=${REPEATS:-5}
@@ -120,6 +122,9 @@ for entry in "${cases[@]}"; do
       cat "$log.log" "$log.time" >&2
       echo "FAILED $test (rc=$rc, expected cycles=$expected_cycles, got: ${summary:-none})" >&2
       exit 1
+    fi
+    if [[ "$wave" == 1 && -n "$vcd_reference" && "$sim" != iverilog ]]; then
+      "$python" scripts/compare-vcd.py "$vcd_reference" "$vcd"
     fi
     if [[ "$mode" == bench && "$run" -gt 0 ]]; then
       loop=$(sed -nE 's/.*HARNESS sim_s=([0-9.]+).*/\1/p' "$log.time")

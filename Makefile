@@ -8,7 +8,8 @@ TEST ?= rv32ui-p-add
 SMOKE ?= default
 SIZE ?= small
 REPEATS ?= 5
-WAVE ?= 0
+VCD_REFERENCE ?=
+WAVE ?= $(if $(strip $(VCD_REFERENCE)),1,0)
 JOBS ?= 4
 
 VENV ?= .tools/venv
@@ -74,7 +75,7 @@ CHECK_ENV = CIRCT_BIN="$(CIRCT_BIN)" CIRCT_VERILOG="$(CIRCT_VERILOG)" CIRCT_OPT=
   PYTHON="$(PYTHON)" VENV="$(VENV)"
 
 .PHONY: help setup prepare python-env doctor check-env check-arcilator check-verilator check-iverilog \
-  compile arcilator verilator iverilog run smoke bench compare repro clean
+  compile arcilator verilator iverilog run smoke bench compare compare-vcd repro clean
 help:
 	@echo 'make setup                              prepare RTL and .tools/venv'
 	@echo 'make doctor [SIM=<sim>|all]             verify toolchain'
@@ -83,6 +84,7 @@ help:
 	@echo 'make smoke SIM=<sim>|all [SMOKE=all]    official RV32IMAC ISA tests (8 by default, 67 with SMOKE=all)'
 	@echo 'make bench SIM=<sim>|all SIZE=small|large|all [TAG=name]  Dhrystone / CoreMark timing'
 	@echo 'make compare                            table of all build/results/<TAG>/measurements.tsv'
+	@echo 'make compare-vcd REFERENCE=... CANDIDATE=...  compare VCD files or result directories'
 	@echo 'make repro                              standalone CIRCT/arcilator reproducers'
 
 setup: prepare python-env
@@ -143,20 +145,20 @@ build/arcilator/model.o: build/arcilator/model.ll
 	  opt_ir="$<"; \
 	fi; \
 	"$(LLC)" -O2 -filetype=obj $(HOST_TARGET) "$$opt_ir" -o $@
-build/arcilator/sim: build/arcilator/model.o build/arcilator/model.h sim/main.cpp
+build/arcilator/sim: build/arcilator/model.o build/arcilator/model.h sim/main.cpp sim/vcd.h
 	$(CXX) $(CXXFLAGS) -DUSE_ARCILATOR $(WRAP_CPPFLAG) -Ibuild/arcilator -I"$(ARCILATOR_DIR)" \
 	  sim/main.cpp build/arcilator/model.o -o $@
 
 # Verilator: compile TOP directly against the unified C++ harness.
 verilator: check-verilator build/verilator/obj/sim
-build/verilator/obj/V$(TOP).mk: build/rtl/.stamp sim/main.cpp $(if $(filter e203_sim,$(TOP)),sim/e203_sim.v)
+build/verilator/obj/V$(TOP).mk: build/rtl/.stamp sim/main.cpp sim/vcd.h $(if $(filter e203_sim,$(TOP)),sim/e203_sim.v)
 	rm -rf build/verilator/obj
 	mkdir -p build/verilator
 	"$(VERILATOR)" --cc --exe --top-module $(TOP) -Wno-fatal --timescale 1ns/10ps \
-	  $(if $(filter 1,$(WAVE)),--trace) $(DEFINES) $(INCLUDE) $(VERILATOR_FLAGS) \
+	  $(DEFINES) $(INCLUDE) $(VERILATOR_FLAGS) \
 	  -Mdir $(ROOT)/build/verilator/obj -o sim $(RTL) $(ROOT)/sim/main.cpp
 	"$(VERILATOR)" --version > build/verilator/version.txt
-build/verilator/obj/sim: build/verilator/obj/V$(TOP).mk sim/main.cpp
+build/verilator/obj/sim: build/verilator/obj/V$(TOP).mk sim/main.cpp sim/vcd.h
 	$(MAKE) -C build/verilator/obj -f V$(TOP).mk -j$(JOBS) \
 	  CXX="$(CXX)" LINK="$(CXX)" AR="$(AR)" OPT_FAST=-O2 OPT_SLOW=-O2 OPT_GLOBAL=-O2 \
 	  USER_CPPFLAGS="$(CXXFLAGS) -DUSE_VERILATOR $(WRAP_CPPFLAG)"
@@ -171,8 +173,8 @@ build/iverilog/sim.vvp: build/rtl/.stamp sim/tb.v
 ifeq ($(SIM),all)
 compile: check-env arcilator verilator iverilog
 smoke: compile
-	@$(MAKE) smoke SIM=arcilator TOP=$(TOP) SMOKE=$(SMOKE) WAVE=$(WAVE)
-	@$(MAKE) smoke SIM=verilator TOP=$(TOP) SMOKE=$(SMOKE) WAVE=$(WAVE)
+	@$(MAKE) smoke SIM=arcilator TOP=$(TOP) SMOKE=$(SMOKE) WAVE=$(WAVE) VCD_REFERENCE="$(VCD_REFERENCE)"
+	@$(MAKE) smoke SIM=verilator TOP=$(TOP) SMOKE=$(SMOKE) WAVE=$(WAVE) VCD_REFERENCE="$(VCD_REFERENCE)"
 	@$(MAKE) smoke SIM=iverilog TOP=$(TOP) SMOKE=$(SMOKE) WAVE=$(WAVE)
 bench: compile
 	@$(MAKE) bench SIM=arcilator TOP=$(TOP) SIZE=$(SIZE) REPEATS=$(REPEATS)
@@ -182,15 +184,19 @@ bench: compile
 else
 compile: check-env $(EXE)
 run: compile
-	SIM_EXE=$(EXE) TAG="$(or $(TAG),$(SIM)-run)" VVP="$(VVP)" WAVE=$(WAVE) scripts/run.sh $(SIM) run $(TEST)
+	SIM_EXE=$(EXE) TAG="$(or $(TAG),$(SIM)-run)" VVP="$(VVP)" PYTHON="$(PYTHON)" VCD_REFERENCE="$(VCD_REFERENCE)" WAVE=$(WAVE) scripts/run.sh $(SIM) run $(TEST)
 smoke: compile
-	SIM_EXE=$(EXE) TAG="$(or $(TAG),$(SIM))" VVP="$(VVP)" SMOKE=$(SMOKE) WAVE=$(WAVE) scripts/run.sh $(SIM) smoke
+	SIM_EXE=$(EXE) TAG="$(or $(TAG),$(SIM))" VVP="$(VVP)" PYTHON="$(PYTHON)" VCD_REFERENCE="$(VCD_REFERENCE)" SMOKE=$(SMOKE) WAVE=$(WAVE) scripts/run.sh $(SIM) smoke
 bench: compile
 	SIM_EXE=$(EXE) TAG="$(or $(TAG),$(SIM))" VVP="$(VVP)" SIZE=$(SIZE) REPEATS=$(REPEATS) WAVE=0 scripts/run.sh $(SIM) bench
 endif
 
 compare:
 	@awk -f scripts/compare.awk build/results/*/measurements.tsv
+
+compare-vcd:
+	@test -n "$(REFERENCE)" && test -n "$(CANDIDATE)" || { echo 'usage: make compare-vcd REFERENCE=... CANDIDATE=...' >&2; exit 2; }
+	@$(PYTHON) scripts/compare-vcd.py "$(REFERENCE)" "$(CANDIDATE)"
 
 # Standalone CIRCT/arcilator compiler gap reproducers.
 repro:
