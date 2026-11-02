@@ -11,13 +11,20 @@ REPEATS ?= 5
 WAVE ?= 0
 JOBS ?= 4
 
-PYTHON ?= python3
+VENV ?= .tools/venv
+VENV_PYTHON = $(VENV)/bin/python3
+PYTHON_BOOTSTRAP ?= python3
+JINJA2_VERSION ?= 3.1.6
+# Explicit PYTHON wins; otherwise use the setup venv when present.
+PYTHON_SET_BY_USER := $(if $(strip $(PYTHON)),1,0)
+PYTHON ?= $(if $(wildcard $(VENV_PYTHON)),$(VENV_PYTHON),$(PYTHON_BOOTSTRAP))
 CIRCT_BIN ?=
 CIRCT_VERILOG ?= $(if $(CIRCT_BIN),$(CIRCT_BIN)/)circt-verilog
 CIRCT_OPT ?= $(if $(CIRCT_BIN),$(CIRCT_BIN)/)circt-opt
 ARCILATOR ?= $(if $(CIRCT_BIN),$(CIRCT_BIN)/)arcilator
 ARCILATOR_DIR ?= $(if $(CIRCT_BIN),$(CIRCT_BIN),$(patsubst %/,%,$(dir $(shell command -v "$(ARCILATOR)" 2>/dev/null))))
-ARCILATOR_HEADER_CPP ?= $(ARCILATOR_DIR)/arcilator-header-cpp.py
+ARCILATOR_HEADER_CPP ?= $(if $(ARCILATOR_DIR),$(ARCILATOR_DIR)/)arcilator-header-cpp.py
+ARCILATOR_RUNTIME_H ?= $(if $(ARCILATOR_DIR),$(ARCILATOR_DIR)/)arcilator-runtime.h
 OPT ?= $(if $(CIRCT_BIN),$(CIRCT_BIN)/)opt
 LLC ?= $(if $(CIRCT_BIN),$(CIRCT_BIN)/)llc
 VERILATOR ?= verilator
@@ -59,9 +66,18 @@ $(error TAG is not supported with SIM=all; run one SIM at a time)
 endif
 endif
 
-.PHONY: help setup prepare compile arcilator verilator iverilog run smoke bench compare repro clean
+CHECK_ENV = CIRCT_BIN="$(CIRCT_BIN)" CIRCT_VERILOG="$(CIRCT_VERILOG)" CIRCT_OPT="$(CIRCT_OPT)" \
+  ARCILATOR="$(ARCILATOR)" ARCILATOR_HEADER_CPP="$(ARCILATOR_HEADER_CPP)" \
+  ARCILATOR_RUNTIME_H="$(ARCILATOR_RUNTIME_H)" \
+  OPT="$(OPT)" LLC="$(LLC)" VERILATOR="$(VERILATOR)" \
+  IVERILOG="$(IVERILOG)" VVP="$(VVP)" CXX="$(CXX)" AR="$(AR)" \
+  PYTHON="$(PYTHON)" VENV="$(VENV)"
+
+.PHONY: help setup prepare python-env doctor check-env check-arcilator check-verilator check-iverilog \
+  compile arcilator verilator iverilog run smoke bench compare repro clean
 help:
-	@echo 'make setup                              init E203 submodule, copy and patch RTL'
+	@echo 'make setup                              prepare RTL and .tools/venv'
+	@echo 'make doctor [SIM=<sim>|all]             verify toolchain'
 	@echo 'make arcilator|verilator|iverilog       build one simulator (tool paths: see README)'
 	@echo 'make run   SIM=<sim> TEST=rv32ui-p-add  run one test: ISA name, dhrystone, coremark, or .verilog path'
 	@echo 'make smoke SIM=<sim>|all [SMOKE=all]    official RV32IMAC ISA tests (8 by default, 67 with SMOKE=all)'
@@ -69,7 +85,29 @@ help:
 	@echo 'make compare                            table of all build/results/<TAG>/measurements.tsv'
 	@echo 'make repro                              standalone CIRCT/arcilator reproducers'
 
-setup: prepare
+setup: prepare python-env
+	@echo 'Ready. Next: make doctor SIM=all'
+
+python-env:
+	@VENV="$(VENV)" PYTHON="$(PYTHON)" PYTHON_SET_BY_USER="$(PYTHON_SET_BY_USER)" \
+	  PYTHON_BOOTSTRAP="$(PYTHON_BOOTSTRAP)" JINJA2_VERSION="$(JINJA2_VERSION)" \
+	  scripts/setup-python.sh
+
+check-env:
+	@$(CHECK_ENV) scripts/check-env.sh $(SIM)
+
+check-arcilator:
+	@$(CHECK_ENV) scripts/check-env.sh arcilator
+
+check-verilator:
+	@$(CHECK_ENV) scripts/check-env.sh verilator
+
+check-iverilog:
+	@$(CHECK_ENV) scripts/check-env.sh iverilog
+
+doctor:
+	@$(CHECK_ENV) scripts/check-env.sh --verbose $(SIM)
+
 prepare: build/rtl/.stamp
 build/rtl/.stamp: patches/remove-dff-delays.patch
 	@[ -d ext/e203/rtl ] || git submodule update --init --depth=1 ext/e203
@@ -80,7 +118,7 @@ build/rtl/.stamp: patches/remove-dff-delays.patch
 	touch $@
 
 # arcilator: Verilog -> Moore/Core -> explicit SRAMs -> flattened HW -> LLVM -> C++ header.
-arcilator: build/arcilator/sim
+arcilator: check-arcilator build/arcilator/sim
 build/arcilator/frontend.mlir: build/rtl/.stamp $(if $(filter e203_sim,$(TOP)),sim/e203_sim.v)
 	mkdir -p build/arcilator
 	"$(CIRCT_VERILOG)" --single-unit --timescale=1ns/10ps \
@@ -110,7 +148,7 @@ build/arcilator/sim: build/arcilator/model.o build/arcilator/model.h sim/main.cp
 	  sim/main.cpp build/arcilator/model.o -o $@
 
 # Verilator: compile TOP directly against the unified C++ harness.
-verilator: build/verilator/obj/sim
+verilator: check-verilator build/verilator/obj/sim
 build/verilator/obj/V$(TOP).mk: build/rtl/.stamp sim/main.cpp $(if $(filter e203_sim,$(TOP)),sim/e203_sim.v)
 	rm -rf build/verilator/obj
 	mkdir -p build/verilator
@@ -124,14 +162,14 @@ build/verilator/obj/sim: build/verilator/obj/V$(TOP).mk sim/main.cpp
 	  USER_CPPFLAGS="$(CXXFLAGS) -DUSE_VERILATOR $(WRAP_CPPFLAG)"
 
 # Icarus Verilog: compile e203_cpu_top with the Verilog testbench.
-iverilog: build/iverilog/sim.vvp
+iverilog: check-iverilog build/iverilog/sim.vvp
 build/iverilog/sim.vvp: build/rtl/.stamp sim/tb.v
 	mkdir -p build/iverilog
 	"$(IVERILOG)" -g2012 $(DEFINES) $(INCLUDE) -s tb_top -o $@ $(RTL_BASE) sim/tb.v
 	"$(IVERILOG)" -V > build/iverilog/version.txt 2>&1
 
 ifeq ($(SIM),all)
-compile: arcilator verilator iverilog
+compile: check-env arcilator verilator iverilog
 smoke: compile
 	@$(MAKE) smoke SIM=arcilator TOP=$(TOP) SMOKE=$(SMOKE) WAVE=$(WAVE)
 	@$(MAKE) smoke SIM=verilator TOP=$(TOP) SMOKE=$(SMOKE) WAVE=$(WAVE)
@@ -142,7 +180,7 @@ bench: compile
 	@$(MAKE) bench SIM=iverilog TOP=$(TOP) SIZE=$(SIZE) REPEATS=$(REPEATS)
 	@$(MAKE) compare
 else
-compile: $(EXE)
+compile: check-env $(EXE)
 run: compile
 	SIM_EXE=$(EXE) TAG="$(or $(TAG),$(SIM)-run)" VVP="$(VVP)" WAVE=$(WAVE) scripts/run.sh $(SIM) run $(TEST)
 smoke: compile
