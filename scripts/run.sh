@@ -137,7 +137,7 @@ for entry in "${cases[@]}"; do
     fi
     if [[ "$mode" == bench && "$run" -gt 0 ]]; then
       loop=$(sed -nE 's/.*HARNESS sim_s=([0-9.]+).*/\1/p' "$log.time")
-      wall=$(awk '$1=="real" {print $2}' "$log.time")
+      wall=$(sed -nE 's/.*real ([0-9.]+).*/\1/p' "$log.time" | tail -n 1)
       printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$tag" "$test" "$run" "$cycles" "${loop:--}" "$wall" >> "$tsv"
     fi
   done
