@@ -9,22 +9,25 @@ git clone --recurse-submodules https://github.com/felixtensor/e203-sim-bench.git
 cd e203-sim-bench
 ```
 
-Follow [Environment Setup](docs/setup.md) to install the tools and set `CIRCT_BIN` and `PYTHON`, then run in the same shell:
+Install the system packages and CIRCT as described in [Environment Setup](docs/setup.md), then:
 
 ```sh
 make setup
-
+export CIRCT_BIN=/path/to/circt/build/bin
+make doctor SIM=all
 make smoke SIM=all
 make bench SIM=all SIZE=small REPEATS=1
 make compare
 ```
 
-`make setup` prepares the submodule and patched RTL; it does not install tools. Tools default to `PATH` unless overridden.
+`make setup` does not install CIRCT, Verilator, or Icarus.
 
 ## Commands
 
 | Command | Purpose |
 | --- | --- |
+| `make setup` | submodule, patched RTL, `.tools/venv` |
+| `make doctor [SIM=<sim>|all]` | verify toolchain |
 | `make smoke SIM=all SMOKE=all` | all 67 RV32IMAC ISA tests (slow on Icarus) |
 | `make bench SIM=arcilator SIZE=all` | Dhrystone + CoreMark |
 | `make run SIM=iverilog TEST=coremark WAVE=1` | one test, optional VCD |
@@ -43,9 +46,10 @@ make compare
 | `SMOKE` | `default` = 8 tests, `all` = 67 |
 | `REPEATS` | Timed runs after one warm-up (`5`) |
 | `TAG` | `build/results/<TAG>/`; defaults to `<sim>` (`<sim>-run` for `make run`); not allowed with `SIM=all` |
-| `CIRCT_BIN` | CIRCT `bin` directory, including `arcilator-header-cpp.py` and `arcilator-runtime.h` |
+| `CIRCT_BIN` | CIRCT `build/bin` (tools and arcilator headers) |
+| `PYTHON` | Python 3 with `jinja2`; defaults to `.tools/venv/bin/python3` |
 
-`WAVE=1` writes `<TAG>/<test>/wave.vcd` (Verilator needs `-B WAVE=1`). `LUT` (default `false`; arcilator default `true`) and `OPT_FLAGS` (default `-O2`; empty = `llc -O2` only) tune arcilator. `PYTHON` must provide `jinja2`; `VERILATOR`/`IVERILOG`/`VVP` override tool paths.
+`WAVE=1` writes `<TAG>/<test>/wave.vcd` (Verilator needs `-B WAVE=1`). `LUT` (default `false`; arcilator default `true`) and `OPT_FLAGS` (default `-O2`; empty = `llc -O2` only) tune arcilator. `VERILATOR`/`IVERILOG`/`VVP` override tool paths.
 
 Use `-B` when switching tool versions, `TOP`, or build flags. Per-version runs need their own `TAG`:
 
@@ -63,7 +67,7 @@ make -B bench SIM=arcilator TOP=e203_sim SIZE=all TAG=arcilator-wrap CIRCT_BIN=.
 
 - `Makefile` — build and benchmark targets
 - `sim/` — native harness (`main.cpp`), tie-off wrapper (`e203_sim.v`), and Icarus testbench (`tb.v`)
-- `scripts/` — test/bench runner, median table, RAM rewrite
+- `scripts/` — test/bench runner, median table, RAM rewrite, Python/env setup
 - `patches/` — RTL and CIRCT patches
 - `docs/` — environment setup, results and arcilator workarounds
 - `repro/` — standalone CIRCT/arcilator reproducers

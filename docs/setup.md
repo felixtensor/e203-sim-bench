@@ -1,10 +1,10 @@
 # Environment Setup
 
-Run these commands from the `e203-sim-bench` repository root. They prepare the tools used by the [Quick Start](../README.md#quick-start); `make setup` itself only prepares E203's RTL. Keep using the same shell so the exported paths remain available.
+Run these commands from the repository root.
 
 ## System Tools
 
-The benchmark uses Git, Make, Bash, and standard Unix utilities. The native arcilator and Verilator harnesses need a C++17 compiler. Building CIRCT with its slang frontend also needs CMake 3.28+, Ninja, Python 3, and a C++20 compiler (GCC 11+ or Clang 17+; on macOS, use recent Xcode Command Line Tools). See the [slang build requirements](https://sv-lang.com/building.html) for compiler details.
+The benchmark uses Git, Make, Bash, Patch, and standard Unix utilities. The native arcilator and Verilator harnesses need a C++17 compiler. Building CIRCT with its slang frontend also needs CMake 3.28+, Ninja, Python 3, and a C++20 compiler (GCC 11+ or Clang 17+; on macOS, use recent Xcode Command Line Tools). See the [slang build requirements](https://sv-lang.com/building.html) for compiler details.
 
 ### macOS
 
@@ -26,22 +26,19 @@ The simulator packages provide [`verilator`](https://formulae.brew.sh/formula/ve
 
 ```sh
 sudo apt-get update
-sudo apt-get install -y build-essential git cmake ninja-build python3 python3-venv verilator iverilog
+sudo apt-get install -y build-essential git cmake ninja-build python3 python3-venv patch verilator iverilog
 ```
 
 Package versions vary by distribution. The [recorded results](results.md#environment) used Verilator 5.028/5.052 and Icarus 12.0/13.0; use matching versions (e.g., built from upstream release tarballs under `.tools/`) when comparing timings. The CIRCT revision below matches the recorded results and the SRAM rewrite in this repository.
 
 ## Python Environment
 
-The arcilator C++ header generator requires `jinja2`. Create an isolated environment under the Git-ignored `.tools/` directory:
+`make setup` creates `.tools/venv` with `jinja2==3.1.6` for the arcilator header generator; later `make` calls use it automatically. To reuse another interpreter with `jinja2`, export it before setup:
 
 ```sh
-python3 -m venv .tools/venv
-.tools/venv/bin/python3 -m pip install jinja2==3.1.6
-export PYTHON="$PWD/.tools/venv/bin/python3"
+export PYTHON=/absolute/path/to/python3
+make setup
 ```
-
-If an existing Python environment already provides `jinja2`, set `PYTHON` to that interpreter's absolute path instead. Installing it into another Python environment will not make it available to the interpreter selected by `PYTHON`.
 
 ## CIRCT and LLVM
 
@@ -51,6 +48,7 @@ Otherwise, build the pinned CIRCT revision and its LLVM submodule together, foll
 
 ```sh
 export CIRCT_SRC="$PWD/.tools/circt"
+export PYTHON="${PYTHON:-$PWD/.tools/venv/bin/python3}"
 git clone https://github.com/llvm/circt.git "$CIRCT_SRC"
 git -C "$CIRCT_SRC" checkout --detach c914150104ad15efa6b16ec4e5e6f86736fe15d8
 git -C "$CIRCT_SRC" apply "$PWD/patches/circt-infer-clock-ports.patch"
@@ -74,26 +72,17 @@ cmake --build "$CIRCT_SRC/build" \
 export CIRCT_BIN="$CIRCT_SRC/build/bin"
 ```
 
-Configuration downloads the pinned slang sources and their dependencies. LLVM/CIRCT compilation is a substantial one-time build; lower `--parallel` if memory is limited. `CIRCT_SLANG_FRONTEND_ENABLED=ON` is required to build `circt-verilog`. The build also copies `arcilator-header-cpp.py` and `arcilator-runtime.h` into `build/bin`; this repository needs both alongside the executables.
+Configuration downloads the pinned slang sources. LLVM/CIRCT is a substantial one-time build; lower `--parallel` if memory is limited. `CIRCT_SLANG_FRONTEND_ENABLED=ON` is required for `circt-verilog`. The build places `arcilator-header-cpp.py` and `arcilator-runtime.h` in `build/bin`.
 
-Use `opt` and `llc` from the same LLVM build as CIRCT. Setting `CIRCT_BIN` selects all five tools together, without needing to add them to `PATH`.
+Use `opt` and `llc` from the same LLVM build as CIRCT.
 
 ## Check the Environment
 
 ```sh
-(
-set -e
-"$PYTHON" -c 'import jinja2; print("jinja2", jinja2.__version__)'
-for tool in circt-verilog circt-opt arcilator opt llc; do
-  "$CIRCT_BIN/$tool" --version
-done
-test -f "$CIRCT_BIN/arcilator-header-cpp.py"
-test -f "$CIRCT_BIN/arcilator-runtime.h"
-verilator --version
-iverilog -V
-vvp -V
-c++ --version
-)
+make doctor            # arcilator
+make doctor SIM=all    # all simulators
 ```
 
-Return to the [Quick Start](../README.md#quick-start) after these checks succeed. In a new shell, export `PYTHON` and `CIRCT_BIN` again. If the simulators are installed outside `PATH`, pass `VERILATOR=/absolute/path/to/verilator`, or both `IVERILOG=/absolute/path/to/iverilog` and `VVP=/absolute/path/to/vvp`, to Make. Keep `iverilog` and `vvp` from the same installation.
+`make doctor` prints resolved paths and versions and exits non-zero with hints for missing tools; `bench`/`smoke` run it automatically. For non-PATH installs, pass `VERILATOR=...` or `IVERILOG=... VVP=...`; `CIRCT_BIN` covers all CIRCT tools.
+
+Return to the [Quick Start](../README.md#quick-start).
