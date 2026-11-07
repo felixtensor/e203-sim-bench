@@ -4,7 +4,7 @@
 
 Tested versions:
 - E203 (`ext/e203`): `9f3e34f337f5d0a1236a285871ffa2032491617a`
-- CIRCT: `c914150104ad15efa6b16ec4e5e6f86736fe15d8` (LLVM 24.0.0git, slang 11.0.0)
+- CIRCT: `fcd8507a3c876ba0c9f3d435310023173f2a7434` (LLVM 24.0.0git, slang 11.0.0)
 
 ## Summary of Required Workarounds
 
@@ -15,8 +15,7 @@ Tested versions:
 | 3 | `sirv_sim_ram.v` writes byte lanes in a `for` loop; `ImportVerilog` leaves residual `llhd.prb` / `llhd.drv` ops that fail legalization in `arcilator` | Replace the two `sirv_sim_ram` modules (ITCM 8192×64, DTCM 16384×32) with `arc.memory` plus masked `arc.memory_write_port` / `arc.memory_read_port` ops | [`scripts/rewrite-ram.awk`](../scripts/rewrite-ram.awk) (`build/arcilator/ram.mlir`) |
 | 4 | Packed-vector signals across module boundaries (`e203_lsu_ctrl`, `e203_biu`, `e203_exu`, `sirv_qspi_arbiter`) and register-file array probes cause `arcilator` legalization / `SplitLoops` failures | Run `circt-opt --hw-flatten-modules --llhd-combine-drives --llhd-sig2reg --hw-aggregate-to-comb --canonicalize --cse` before `arcilator`, and scalarize the 3-bit QSPI CS mux in `sirv_qspi_arbiter.v` | [`Makefile`](../Makefile) (`build/arcilator/flat.mlir`), [`patches/e203.patch`](../patches/e203.patch) |
 | 5 | `arcilator` rejects asynchronous resets on `seq.firreg` | Pass `--async-resets-as-sync` and use the upstream startup reset (released at 120 ns) | [`Makefile`](../Makefile) (`build/arcilator/model.ll`) |
-| 6 | On Linux (`glibc`), `circt-verilog` fails in `seq-infer-clock-ports` (`'hw.instance' op result type #... must be 'i1', but got '!seq.clock'`) due to a temporary `BitVector` use-after-free on modules with >64 ports | Materialize `clockOutputs.lookup(target)` and `clockInputs.lookup(target)` before iterating `.set_bits()` in `InferClockPorts.cpp` | [`patches/circt-infer-clock-ports.patch`](../patches/circt-infer-clock-ports.patch) |
-| 7 | Peripheral reset `for` loops (GPIO, UART/SPI FIFOs) and an inferred UART TX payload latch remain as unlegalized `llhd.process` blocks | Replace reset loops with whole-vector/array resets and default `fifo_tx_data` to zero when `fifo_tx_valid` is low | [`patches/e203.patch`](../patches/e203.patch) |
+| 6 | Peripheral reset `for` loops (GPIO, UART/SPI FIFOs) and an inferred UART TX payload latch remain as unlegalized `llhd.process` blocks | Replace reset loops with whole-vector/array resets and default `fifo_tx_data` to zero when `fifo_tx_valid` is low | [`patches/e203.patch`](../patches/e203.patch) |
 
 ## Build Pipeline
 
@@ -44,18 +43,14 @@ All three simulators compile the same patched `build/rtl` and `build/tb/tb_top.v
 
 Without prior flattening, module ports carry packed vectors whose bits depend on different logic stages across `e203_lsu_ctrl`, `e203_biu`, and `e203_exu`. Flattening and simplifying at the `hw`/`comb`/`seq` level resolves bit-level dataflow first. In the complete SoC, `--llhd-combine-drives --llhd-sig2reg` promotes the register-file array (`rf_r`) probed by `tb_top` for `x3`, and `--hw-aggregate-to-comb` lowers 1-element AON queue arrays (`!hw.array<1xiN>`) so `arcilator`'s `InferStateProperties` pass can legalize all state registers cleanly.
 
-### 3. `InferClockPorts` Temporary `BitVector` Lifetime (`patches/circt-infer-clock-ports.patch`)
-
-In CIRCT `c91415010`, `InferClockPortsPass::rewriteModule` iterates over `clockOutputs.lookup(target).set_bits()` and `clockInputs.lookup(target).set_bits()`. Because `DenseMap::lookup` returns a temporary `BitVector` by value and `.set_bits()` holds a pointer to it, the temporary is destroyed before the C++17 range-`for` body runs. When a module has >64 ports (`e203_cpu` has 65 inputs and 90 outputs), `BitVector` heap-allocates and `glibc` `free()` overwrites the freed chunk with `tcache` pointers, corrupting random ports to `!seq.clock`.
-
-### 4. Performance Options (Not Required for Correctness)
+### 3. Performance Options (Not Required for Correctness)
 
 On `tb_top` (240 functions, `989–990 KB` LLVM IR with `LUT=false`):
 
 - `opt -O2` before `llc -O2`: Inlines the `@*_arc_*_split_*` functions emitted by `SplitLoops` after `InlineArcs` (`llc` alone leaves them outlined). Gains **+39%** on CoreMark on M1 Pro (`326 k` $\rightarrow$ `453 k cycles/s`) and **+54%** on 7800X3D (`209 k` $\rightarrow$ `323 k cycles/s`).
 - `--lookup-tables=false` (`LUT=false`, project default): `LUT=true` emits 305 KB of additional lookup-table logic (`1.3 MB` LLVM IR) that is re-initialized inside `eval()`. Disabling it gains **+61%** on CoreMark on M1 Pro (`281 k` $\rightarrow$ `453 k cycles/s`) and **+27%** on 7800X3D (`255 k` $\rightarrow$ `323 k cycles/s`).
 
-### 5. SoC Peripheral and Testbench Adaptations (`patches/e203.patch`)
+### 4. SoC Peripheral and Testbench Adaptations (`patches/e203.patch`)
 
 Upstream `tb_top` instantiates `e203_soc_top`, adding UART, SPI, GPIO, I2C, and AON. In addition to stripping `#1` in `sirv_gnrl_dffs.v`, [`patches/e203.patch`](../patches/e203.patch) includes:
 

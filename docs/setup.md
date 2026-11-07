@@ -29,7 +29,7 @@ sudo apt-get update
 sudo apt-get install -y build-essential git cmake ninja-build python3 python3-venv patch verilator iverilog
 ```
 
-Package versions vary by distribution. The [recorded results](results.md#environment) used Verilator 5.028/5.052 and Icarus 12.0/13.0; use matching versions (e.g., built from upstream release tarballs under `.tools/`) when comparing timings. The CIRCT revision below matches the recorded results and the SRAM rewrite in this repository.
+Package versions vary by distribution. The [recorded results](results.md#environment) used Verilator 5.028/5.052 and Icarus 12.0/13.0; use matching versions (e.g., built from upstream release tarballs under `.tools/`) when comparing timings. The pinned CIRCT revision below matches the SRAM rewrite in this repository.
 
 ## Python Environment
 
@@ -42,16 +42,15 @@ make setup
 
 ## CIRCT and LLVM
 
-If you already have a build of CIRCT revision `c914150104ad15efa6b16ec4e5e6f86736fe15d8` with the slang frontend enabled (and [`patches/circt-infer-clock-ports.patch`](../patches/circt-infer-clock-ports.patch) applied on Linux), set `CIRCT_BIN` to its absolute `build/bin` path and skip to the checks below.
+If you already have a build of CIRCT revision `fcd8507a3c876ba0c9f3d435310023173f2a7434` with the slang frontend enabled, set `CIRCT_BIN` to its absolute `build/bin` path and skip to the checks below.
 
-Otherwise, build the pinned CIRCT revision and its LLVM submodule together, following the [upstream build configuration](https://github.com/llvm/circt/blob/c914150104ad15efa6b16ec4e5e6f86736fe15d8/README.md#getting-started):
+Otherwise, build the pinned CIRCT revision and its LLVM submodule together, following the [upstream build configuration](https://github.com/llvm/circt/blob/fcd8507a3c876ba0c9f3d435310023173f2a7434/README.md#getting-started):
 
 ```sh
 export CIRCT_SRC="$PWD/.tools/circt"
 export PYTHON="${PYTHON:-$PWD/.tools/venv/bin/python3}"
 git clone https://github.com/llvm/circt.git "$CIRCT_SRC"
-git -C "$CIRCT_SRC" checkout --detach c914150104ad15efa6b16ec4e5e6f86736fe15d8
-git -C "$CIRCT_SRC" apply "$PWD/patches/circt-infer-clock-ports.patch"
+git -C "$CIRCT_SRC" checkout --detach fcd8507a3c876ba0c9f3d435310023173f2a7434
 git -C "$CIRCT_SRC" submodule update --init --recursive
 
 cmake -G Ninja -S "$CIRCT_SRC/llvm/llvm" -B "$CIRCT_SRC/build" \

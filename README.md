@@ -77,7 +77,7 @@ make -B bench SIM=arcilator SIZE=all OPT_FLAGS= TAG=arcilator-no-opt CIRCT_BIN=.
 - `Makefile` — build and benchmark targets
 - `sim/` — C++ driver (`main.cpp`) and portable VCD writer (`vcd.h`)
 - `scripts/` — test/bench runner, VCD/metric comparison, SRAM lowering, and env setup
-- `patches/` — E203 RTL/testbench and CIRCT patches
+- `patches/` — E203 RTL/testbench patch
 - `docs/` — environment setup, results, and arcilator workarounds
 - `repro/` — standalone CIRCT/arcilator reproducers
 - `ext/e203/` — upstream E203 submodule

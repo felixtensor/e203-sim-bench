@@ -9,9 +9,11 @@ All simulators compile the upstream `tb_top` testbench and complete E203 SoC (`e
 | macOS host | Apple M1 Pro (10 cores, 32 GB, macOS 27.0.1), Apple clang 21.0.0 (`clang-2100.4.1.1`) |
 | Linux host | AMD Ryzen 7 7800X3D (8 cores / 16 threads, 32 GB, CachyOS Linux 7.3.1), GCC 16.2.1 |
 | E203 | `9f3e34f337f5d0a1236a285871ffa2032491617a` ([`patches/e203.patch`](../patches/e203.patch)) |
-| CIRCT | `c914150104ad15efa6b16ec4e5e6f86736fe15d8` (LLVM 24.0.0git, slang 11.0.0; [`circt-infer-clock-ports.patch`](../patches/circt-infer-clock-ports.patch) on Linux) |
+| CIRCT (current pin) | `fcd8507a3c876ba0c9f3d435310023173f2a7434` (LLVM 24.0.0git, slang 11.0.0) |
 | Verilator | 5.028, 5.052 |
 | Icarus Verilog | 12.0, 13.0 (`-g2012`) |
+
+Recorded timings were produced with CIRCT `c914150104ad15efa6b16ec4e5e6f86736fe15d8`; the current pin reproduces the same cycle counts, VCD transitions, and arcilator IR (`240` functions, `989 KB`) on the Linux host, with Dhrystone/CoreMark throughput within run-to-run variance.
 
 Native harnesses are compiled single-threaded with `-O2 -std=c++17`. Arcilator uses `LUT=false`, `opt -O2`, and `llc -O2` (`without opt -O2` sets `OPT_FLAGS=`); Verilator uses `OPT_FAST=OPT_SLOW=OPT_GLOBAL=-O2`.
 
